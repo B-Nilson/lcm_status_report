@@ -17,6 +17,7 @@ desired_cols <- c(
   "site_id",
   "date",
   pm25_qc = "qaqc_flag_pm2.5",
+  pm25 = "pm2.5_validated",
   pm25_a = "pm2.5_a",
   pm25_b = "pm2.5_b",
   "temperature",
