@@ -1,8 +1,6 @@
 # Packages/Functions ------------------------------------------------------
 
-source("../functions.R")
-source("../constants.R")
-source("./status-functions.R")
+source("R/status-functions.R")
 source("R/load_report_data.R")
 
 # Import fonts and functions
