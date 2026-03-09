@@ -2,6 +2,7 @@
 
 source("R/status-functions.R")
 source("R/load_report_data.R")
+source("R/flagging.R")
 
 # Import fonts and functions
 # extrafont::font_import() # only run once per machine

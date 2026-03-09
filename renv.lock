@@ -3977,6 +3977,50 @@
       "Maintainer": "Gábor Csárdi <csardi.gabor@gmail.com>",
       "Repository": "CRAN"
     },
+    "patchwork": {
+      "Package": "patchwork",
+      "Version": "1.3.2",
+      "Source": "Repository",
+      "Type": "Package",
+      "Title": "The Composer of Plots",
+      "Authors@R": "person(given = \"Thomas Lin\", family = \"Pedersen\", role = c(\"cre\", \"aut\"), email = \"thomasp85@gmail.com\", comment = c(ORCID = \"0000-0002-5147-4711\"))",
+      "Maintainer": "Thomas Lin Pedersen <thomasp85@gmail.com>",
+      "Description": "The 'ggplot2' package provides a strong API for sequentially  building up a plot, but does not concern itself with composition of multiple plots. 'patchwork' is a package that expands the API to allow for  arbitrarily complex composition of plots by, among others, providing  mathematical operators for combining multiple plots. Other packages that try  to address this need (but with a different approach) are 'gridExtra' and  'cowplot'.",
+      "License": "MIT + file LICENSE",
+      "Encoding": "UTF-8",
+      "Imports": [
+        "ggplot2 (>= 3.0.0)",
+        "gtable (>= 0.3.6)",
+        "grid",
+        "stats",
+        "grDevices",
+        "utils",
+        "graphics",
+        "rlang (>= 1.0.0)",
+        "cli",
+        "farver"
+      ],
+      "RoxygenNote": "7.3.2",
+      "URL": "https://patchwork.data-imaginist.com, https://github.com/thomasp85/patchwork",
+      "BugReports": "https://github.com/thomasp85/patchwork/issues",
+      "Suggests": [
+        "knitr",
+        "rmarkdown",
+        "gridGraphics",
+        "gridExtra",
+        "ragg",
+        "testthat (>= 2.1.0)",
+        "vdiffr",
+        "covr",
+        "png",
+        "gt (>= 0.11.0)"
+      ],
+      "VignetteBuilder": "knitr",
+      "Config/Needs/website": "gifski",
+      "NeedsCompilation": "no",
+      "Author": "Thomas Lin Pedersen [cre, aut] (ORCID: <https://orcid.org/0000-0002-5147-4711>)",
+      "Repository": "CRAN"
+    },
     "pbkrtest": {
       "Package": "pbkrtest",
       "Version": "0.5.5",
@@ -4427,6 +4471,44 @@
       "Author": "Hadley Wickham [aut, cre] (ORCID: <https://orcid.org/0000-0003-4757-117X>), Lionel Henry [aut], Posit Software, PBC [cph, fnd] (ROR: <https://ror.org/03wc8by49>)",
       "Maintainer": "Hadley Wickham <hadley@posit.co>",
       "Repository": "CRAN"
+    },
+    "quacker": {
+      "Package": "quacker",
+      "Version": "0.0.0.9000",
+      "Source": "GitHub",
+      "Title": "Quality Analysis and Quality Control",
+      "Authors@R": "person(\"Brayden\", \"Nilson\", , \"nilson.brayden@gmail.com\", role = c(\"aut\", \"cre\"))",
+      "Description": "Formalizes common Quality Analysis and Quality Control (QA/QC) methods used in data science.",
+      "License": "MIT + file LICENSE",
+      "Encoding": "UTF-8",
+      "Roxygen": "list(markdown = TRUE)",
+      "RoxygenNote": "7.3.3",
+      "Suggests": [
+        "testthat (>= 3.0.0)"
+      ],
+      "Config/testthat/edition": "3",
+      "Imports": [
+        "dplyr",
+        "ggplot2",
+        "ggpubr",
+        "handyr",
+        "lubridate",
+        "patchwork",
+        "rlang",
+        "tidyr",
+        "tidyselect"
+      ],
+      "Depends": [
+        "R (>= 4.1.0)"
+      ],
+      "Author": "Brayden Nilson [aut, cre]",
+      "Maintainer": "Brayden Nilson <nilson.brayden@gmail.com>",
+      "RemoteType": "github",
+      "RemoteUsername": "B-Nilson",
+      "RemoteRepo": "quacker",
+      "RemoteRef": "main",
+      "RemoteSha": "38b894471fea6bf41301ae1df97e6fddb79d3a65",
+      "RemoteHost": "api.github.com"
     },
     "quantreg": {
       "Package": "quantreg",

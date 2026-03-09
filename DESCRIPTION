@@ -13,6 +13,7 @@ Imports:
 	leaflet.extras,
 	lubridate,
 	mapview,
+    quacker,
 	renv,
 	RPostgres,
 	sf,
@@ -23,4 +24,5 @@ Imports:
 Remotes:
     github::B-Nilson/aqmapr,
     github::B-Nilson/handyr,
-    github::trafficonese/leaflet.extras
+    github::trafficonese/leaflet.extras,
+    github::B-Nilson/quacker

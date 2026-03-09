@@ -25,29 +25,6 @@ addLegendCustom <- function(map, colors, labels, sizes, ...) {
   ))
 }
 
-add_purpleair_flags <- function(obs) {
-  obs |>
-    dplyr::group_by(site_id) |>
-    dplyr::arrange(date) |>
-    dplyr::mutate(
-      # Flag failed pm25 sensors (use flag from db)
-      pm25_a_flag = pm25_qc %in% c(1, 3),
-      pm25_b_flag = pm25_qc %in% 2:3,
-      pm25_flag = pm25_qc == 4 | is.na(pm25_qc),
-      # Flag failed temperature sensors
-      temperature_flag = flag_bad_temperature(
-        temperature,
-        max_repeats = 3 * 6 # 3 hours for 10min data
-      ),
-      # Flag failed humidity sensors
-      rh_flag = flag_bad_humidity(
-        rh,
-        max_repeats = 3 * 6 # 3 hours for 10min data
-      )
-    ) |>
-    dplyr::ungroup()
-}
-
 complete_active_site_records <- function(
   df,
   time_step = "1 hours",
