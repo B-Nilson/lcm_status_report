@@ -50,18 +50,23 @@ connect_to_db <- function(local = TRUE, ...) {
 
 # Define data extraction function (default is 2 weeks of data)
 get_AQSU_obs <- function(db, end_time, duration_days = 14, desired_cols) {
+  tbls <- list(
+    obs = "pa_obs",
+    meta = "pa_meta"
+  )
+
   # Create date range from desired end time and duration
   date_range <- c(end_time - lubridate::days(duration_days), end_time)
 
   # Get AQSU meta/obs in date_range
   aqsu_sites <- db |>
     handyr::read_from_database(
-      table_name = tbls$PA$meta,
+      table_name = tbls$meta,
       query_fun = \(df) df |> dplyr::filter(is_aqsu)
     )
   obs <- db |>
     handyr::read_from_database(
-      table_name = tbls$PA$obs,
+      table_name = tbls$obs,
       query_fun = \(df) {
         df |>
           dplyr::select(dplyr::all_of(desired_cols)) |>
