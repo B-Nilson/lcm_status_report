@@ -3,6 +3,7 @@
 source("../functions.R")
 source("../constants.R")
 source("./status-functions.R")
+source("R/load_report_data.R")
 
 # Import fonts and functions
 # extrafont::font_import() # only run once per machine
@@ -33,7 +34,7 @@ p_hours_flagged_thresh <- 0.15
 # Where to save things
 report_dir <- "../../deployments/reports/aqsu_status/"
 img_dir <- "plots" # relative to report_dir
-obs_rds <- "../../outputs/aqsu_past_2_week.rds"
+obs_cache_rds <- "data/aqsu_past_2_week.rds"
 output_paths <- list(
   map = "../../deployments/reports/aqsu_status/index.html",
   data = "../../deployments/reports/aqsu_status/aqsu_monitor_status.csv"
@@ -44,28 +45,16 @@ inter_font_url <- c(
   "Inter" = 'https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap'
 )
 
+earliest_date <- latest_date - lubridate::days(duration_days)
+
 # Load Past 2 Weeks of AQSU Data ------------------------------------------
 
-# Extract AQSU obs from database
-earliest_date <- latest_date - lubridate::days(duration_days)
-db <- connect_to_db()
-obs <- db |>
-  get_AQSU_obs(
-    end_time = latest_date,
+obs <- latest_date |>
+  load_report_data(
     duration_days = duration_days,
-    desired_cols = desired_cols
+    desired_cols = desired_cols,
+    cache_path = obs_cache_rds
   )
-RPostgres::dbDisconnect(db)
-
-# Save copy for local testing
-saveRDS(obs, obs_rds)
-
-# For testing locally
-if (!file.exists(obs_rds)) {
-  server_file <- paste0("https://aqmap.ca/aqmap/outputs/", basename(obs_rds))
-  download.file(server_file, obs_rds, mode = "wb")
-  obs <- readRDS(obs_rds)
-}
 
 # Flag Data ---------------------------------------------------------------
 
