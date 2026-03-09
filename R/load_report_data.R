@@ -81,16 +81,14 @@ get_AQSU_obs <- function(db, end_time, duration_days = 14, desired_cols) {
       }
     )
 
-  # Reformat
   obs |>
-    # Join with station metadata
     dplyr::full_join(aqsu_sites, by = "site_id") |>
     # Handle sites with no data having NA dates (use last date of obs in database)
     dplyr::mutate(
       date = dplyr::case_when(
         is.na(date) & !is.na(last_date) ~ last_date,
         is.na(date) ~ last_seen,
-        TRUE ~ date
+        .default = date
       )
     ) |>
     dplyr::select(dplyr::all_of(col_order))

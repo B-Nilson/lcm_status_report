@@ -430,7 +430,11 @@ addAQSUStatusMarkers <- function(
     group <- "Humidity Sensor"
     leg_sizes <- c(4, 3, 5, 5, 5) * 2
     current_domain <- c(0, 100)
-    current_val_pal <- leaflet::colorNumeric("turbo", reverse = TRUE, domain = current_domain)
+    current_val_pal <- leaflet::colorNumeric(
+      "turbo",
+      reverse = TRUE,
+      domain = current_domain
+    )
     current_fills <- current_val_pal(
       dat$current_rh |> handyr::clamp(range = current_domain)
     )

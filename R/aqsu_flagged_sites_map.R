@@ -5,7 +5,7 @@ source("R/load_report_data.R")
 
 # Import fonts and functions
 # extrafont::font_import() # only run once per machine
-extrafont::loadfonts(device = "all", quiet = TRUE)
+# extrafont::loadfonts(device = "all", quiet = TRUE)
 
 # Setup -------------------------------------------------------------------
 
@@ -24,6 +24,7 @@ desired_cols <- c(
   "rh"
 )
 value_cols <- desired_cols[-(1:3)]
+value_cols <- ifelse(names(value_cols) == "", value_cols, names(value_cols))
 
 # How to display data
 popup_width_px <- 600
@@ -58,7 +59,6 @@ obs <- latest_date |>
 # Flag Data ---------------------------------------------------------------
 
 # Add "_flagged" names for passing to dplyr::across()
-value_cols <- ifelse(names(value_cols) == "", value_cols, names(value_cols))
 value_cols_flagged <- value_cols |>
   stats::setNames(paste0(value_cols, "_flagged"))
 
@@ -181,7 +181,14 @@ map <- aqmapr::make_leaflet_map(
   ) |>
   # Add layers control to topright
   leaflet::addLayersControl(
-    overlayGroups = c("PM2.5 Sensors", "Temperature Sensor", "Humidity Sensor", "Current PM2.5", "Current Temperature", "Current RH"),
+    overlayGroups = c(
+      "PM2.5 Sensors",
+      "Temperature Sensor",
+      "Humidity Sensor",
+      "Current PM2.5",
+      "Current Temperature",
+      "Current RH"
+    ),
     options = leaflet::layersControlOptions(collapsed = FALSE)
   ) |>
   # Add flagged PM2.5 markers on top of unflagged + legend
@@ -261,7 +268,7 @@ map |>
   )
 
 map_data |>
-  dplyr::select(-plot_data, -popup, -dplyr::starts_with("hover_")) |> 
+  dplyr::select(-plot_data, -popup, -dplyr::starts_with("hover_")) |>
   data.table::fwrite(output_paths$data)
 
 # TODO: priority list for repair/replace with info on install/failure date, what failed, env. conditions ecposed to
