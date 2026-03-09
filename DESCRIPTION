@@ -1,0 +1,26 @@
+Imports:
+    aqmapr,
+	cowplot,
+	data.table,
+	dplyr,
+	extrafont,
+	ggplot2,
+	ggpubr,
+	handyr,
+	htmltools,
+	htmlwidgets,
+	leaflet,
+	leaflet.extras,
+	lubridate,
+	mapview,
+	renv,
+	RPostgres,
+	sf,
+	stats,
+	stringr,
+	tidyr,
+	wesanderson
+Remotes:
+    github::B-Nilson/aqmapr,
+    github::B-Nilson/handyr,
+    github::trafficonese/leaflet.extras
