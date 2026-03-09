@@ -13,6 +13,7 @@ Imports:
 	leaflet.extras,
 	lubridate,
 	mapview,
+    pbapply,
     quacker,
 	renv,
 	RPostgres,
