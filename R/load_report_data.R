@@ -54,6 +54,10 @@ get_AQSU_obs <- function(db, end_time, duration_days = 14, desired_cols) {
     obs = "pa_obs",
     meta = "pa_meta"
   )
+  meta_cols <- c("site_id", "lat", "lng", "name")
+  col_order <- meta_cols |>
+    c(ifelse(names(desired_cols) == "", desired_cols, names(desired_cols))) |>
+    unique()
 
   # Create date range from desired end time and duration
   date_range <- c(end_time - lubridate::days(duration_days), end_time)
@@ -89,18 +93,5 @@ get_AQSU_obs <- function(db, end_time, duration_days = 14, desired_cols) {
         TRUE ~ date
       )
     ) |>
-    # Choose/reorder columns
-    dplyr::select(
-      site_id,
-      lat,
-      lng,
-      name,
-      date,
-      pm25_a,
-      pm25_b,
-      pm25,
-      temperature,
-      rh,
-      pm25_qc
-    )
+    dplyr::select(dplyr::all_of(col_order))
 }
