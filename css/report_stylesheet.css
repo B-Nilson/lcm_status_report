@@ -9,6 +9,10 @@
   font-size:16px;
 }
 
+.leaflet-control-layers-overlays {
+    font-size: larger !important;
+}
+
 .main-container {
   max-width: 100% !important;
   margin: auto;

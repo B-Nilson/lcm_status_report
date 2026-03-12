@@ -1,6 +1,9 @@
 function handle_render() {
     improve_search_button();
-    add_layer_control_title('Inspect AQSU PurpleAir:');
+    add_layer_control_titles(
+        ['Inspect Flags for:', 'View Observerations:'],
+        [0, 3]
+    );
     convert_layer_control_to_radio_buttons();
 };
 
@@ -27,10 +30,14 @@ function improve_search_button() {
     document.getElementsByClassName('search-tooltip')[0].style.marginTop = '1px';
 }
 
-// TODO: improve and move to aqmapr
-function add_layer_control_title(title) {
-    document.getElementsByClassName('leaflet-control-layers-overlays')[0].style.fontSize = 'larger';
-    document.getElementsByClassName('leaflet-control-layers-overlays')[0].prepend(title);
+// TODO: move to aqmapr
+function add_layer_control_titles(titles, positions) {
+    let layer_control = document.getElementsByClassName('leaflet-control-layers-overlays')[0];
+    let layer_controls = layer_control.childNodes;
+    let max_i = Math.min(titles.length, positions.length, layer_controls.length + 1);
+    for (let i = 0; i < max_i; i++) {
+        layer_controls[positions[i]].prepend(titles[i]);
+    }
 }
 
 function change_plot(element) {
