@@ -1,18 +1,18 @@
 add_monitor_markers <- function(map, map_data, duration_days, popup_width_px) {
   totals <- list(
-    pm = map_data$flag_group_pm |>
+    PM = map_data$flag_group_pm |>
       levels() |>
       sapply(\(fg) dplyr::filter(map_data, flag_group_pm == fg) |> nrow()),
-    temp = map_data$flag_group_t |>
+    T = map_data$flag_group_t |>
       levels() |>
       sapply(\(fg) dplyr::filter(map_data, flag_group_t == fg) |> nrow()),
-    rh = map_data$flag_group_rh |>
+    RH = map_data$flag_group_rh |>
       levels() |>
       sapply(\(fg) dplyr::filter(map_data, flag_group_rh == fg) |> nrow())
   )
   map |>
     # Add flagged PM2.5 markers on top of unflagged + legend
-    addAQSUStatusMarkers(
+    add_monitor_network_markers(
       dat = dplyr::filter(map_data, !is_flagged_pm | entirely_offline),
       totals = totals,
       flagged = FALSE,
@@ -20,7 +20,7 @@ add_monitor_markers <- function(map, map_data, duration_days, popup_width_px) {
       duration_days = duration_days,
       popup_width = popup_width_px
     ) |>
-    addAQSUStatusMarkers(
+    add_monitor_network_markers(
       dat = dplyr::filter(map_data, is_flagged_pm & !entirely_offline),
       totals = totals,
       flagged = TRUE,
@@ -29,7 +29,7 @@ add_monitor_markers <- function(map, map_data, duration_days, popup_width_px) {
       popup_width = popup_width_px
     ) |>
     # Add flagged T markers on top of unflagged + legend
-    addAQSUStatusMarkers(
+    add_monitor_network_markers(
       dat = dplyr::filter(map_data, !is_flagged_temp | entirely_offline),
       totals = totals,
       flagged = FALSE,
@@ -37,7 +37,7 @@ add_monitor_markers <- function(map, map_data, duration_days, popup_width_px) {
       duration_days = duration_days,
       popup_width = popup_width_px
     ) |>
-    addAQSUStatusMarkers(
+    add_monitor_network_markers(
       dat = dplyr::filter(map_data, is_flagged_temp & !entirely_offline),
       totals = totals,
       flagged = TRUE,
@@ -46,7 +46,7 @@ add_monitor_markers <- function(map, map_data, duration_days, popup_width_px) {
       popup_width = popup_width_px
     ) |>
     # Add flagged RH markers on top of unflagged + legend
-    addAQSUStatusMarkers(
+    add_monitor_network_markers(
       dat = dplyr::filter(map_data, !is_flagged_rh | entirely_offline),
       totals = totals,
       flagged = FALSE,
@@ -54,7 +54,7 @@ add_monitor_markers <- function(map, map_data, duration_days, popup_width_px) {
       duration_days = duration_days,
       popup_width = popup_width_px
     ) |>
-    addAQSUStatusMarkers(
+    add_monitor_network_markers(
       dat = dplyr::filter(map_data, is_flagged_rh & !entirely_offline),
       totals = totals,
       flagged = TRUE,
@@ -70,7 +70,7 @@ add_monitor_markers <- function(map, map_data, duration_days, popup_width_px) {
     leaflet::hideGroup("Current RH")
 }
 
-addAQSUStatusMarkers <- function(
+add_monitor_network_markers <- function(
   map,
   dat,
   totals,
@@ -80,149 +80,186 @@ addAQSUStatusMarkers <- function(
   duration_days = 14,
   popup_width = 700 # pixels
 ) {
+  stopifnot(sensor %in% c("PM", "T", "RH"))
   if (nrow(dat) == 0) {
     return(map)
   }
+
+  # Define layer / column names
+  layer_names <- list(
+    flag = list(
+      PM = "PM2.5 Sensors",
+      T = "Temperature Sensor",
+      RH = "Humidity Sensor"
+    ),
+    current = list(
+      PM = "Current PM2.5",
+      T = "Current Temperature",
+      RH = "Current RH"
+    )
+  )
+  sensors_long <- list(PM = "pm25", T = "temperature", RH = "rh")
+  value_columns <- sensors_long |> lapply(\(x) paste0("current_", x))
+  hover_columns <- sensors_long |> lapply(\(x) paste0("hover_", x))
+  flag_columns <- paste0("flag_group_", names(sensors_long)) |>
+    as.list() |>
+    setNames(names(sensors_long))
+
+  # Define colour palettes
+  value_domains <- list(
+    PM = c(0, 100),
+    T = c(-30, 30),
+    RH = c(0, 100)
+  )
+  palettes <- dat |>
+    make_marker_palettes(
+      value_domains = value_domains,
+      flag_columns = flag_columns
+    )
+  
+  # Apply palettes to sensor flag and value columns
+  groups <- c(layer_names$flag[[sensor]], layer_names$values[[sensor]])
+  dat <- dat |>
+    dplyr::mutate(
+      flag_fills = palettes$flag[[sensor]](get(flag_columns[[sensor]])),
+      flag_radius = dplyr::case_when(
+        entirely_offline ~ 5,
+        flagged ~ 7,
+        .default = 3
+      ),
+      value_fills = get(value_columns[[sensor]]) |>
+        handyr::clamp(range = domains[[sensor]]) |>
+        palettes$values[[sensor]](),
+      value_radius = dplyr::case_when(
+        is.na(get(value_columns[[sensor]])) ~ 3,
+        .default = 5
+      ),
+      label = lapply(get(hover_columns[[sensor]]), htmltools::HTML)
+    )
+
+  popup_options <- leaflet::popupOptions(minWidth = popup_width)
   labelOptions_inter <- leaflet::labelOptions(
     style = list("font-family" = "Inter", "font-size" = "12px")
   )
-  if (sensor == "PM") {
-    dat$label = dat$hover_pm
-    flag_groups <- dat$flag_group_pm |> levels()
-    flag_group_labels <- flag_groups |>
-      paste0(" (n= ", totals$pm, ")") # TODO: pass via arg
-    pal <- leaflet::colorFactor(
-      levels = flag_groups,
-      ordered = TRUE,
-      palette = c(
-        wesanderson::wes_palette("Royal1")[1], # no data
-        wesanderson::wes_palette("Darjeeling1")[2], # no issue
-        wesanderson::wes_palette("FantasticFox1")[c(3, 2, 4, 5)]
-      )
-    )
-    fills <- pal(dat$flag_group_pm)
-    group <- "PM2.5 Sensors"
-    leg_sizes <- c(4, 3, 5, 5, 5, 5) * 2
-    current_domain <- c(0, 100)
-    current_val_pal <- leaflet::colorNumeric("viridis", domain = current_domain)
-    current_fills <- current_val_pal(
-      dat$current_pm25 |> handyr::clamp(range = current_domain)
-    )
-    current_group = "Current PM2.5"
-    current_val_col <- "current_pm25"
-  } else if (sensor == "T") {
-    dat$label = dat$hover_temperature
-    flag_groups <- dat$flag_group_t |> levels()
-    flag_group_labels <- flag_groups |>
-      paste0(" (n= ", totals$temp, ")")
-    pal <- leaflet::colorFactor(
-      levels = flag_groups,
-      ordered = TRUE,
-      palette = c(
-        wesanderson::wes_palette("Royal1")[1],
-        wesanderson::wes_palette("Darjeeling1")[2],
-        wesanderson::wes_palette("FantasticFox1")[c(2, 4, 5)]
-      )
-    )
-    fills <- pal(dat$flag_group_t)
-    group <- "Temperature Sensor"
-    leg_sizes <- c(4, 3, 5, 5, 5) * 2
-    current_domain <- c(-30, 30)
-    current_val_pal <- leaflet::colorNumeric("turbo", domain = current_domain)
-    current_fills <- current_val_pal(
-      dat$current_temperature |> handyr::clamp(range = current_domain)
-    )
-    current_group = "Current Temperature"
-    current_val_col <- "current_temperature"
-  } else if (sensor == "RH") {
-    dat$label = dat$hover_rh
-    flag_groups <- dat$flag_group_rh |> levels()
-    flag_group_labels <- flag_groups |>
-      paste0(" (n= ", totals$rh, ")")
-    pal <- leaflet::colorFactor(
-      levels = flag_groups,
-      ordered = TRUE,
-      palette = c(
-        wesanderson::wes_palette("Royal1")[1],
-        wesanderson::wes_palette("Darjeeling1")[2],
-        wesanderson::wes_palette("FantasticFox1")[c(2, 4, 5)]
-      )
-    )
-    fills <- pal(dat$flag_group_rh)
-    group <- "Humidity Sensor"
-    leg_sizes <- c(4, 3, 5, 5, 5) * 2
-    current_domain <- c(0, 100)
-    current_val_pal <- leaflet::colorNumeric(
-      "turbo",
-      reverse = TRUE,
-      domain = current_domain
-    )
-    current_fills <- current_val_pal(
-      dat$current_rh |> handyr::clamp(range = current_domain)
-    )
-    current_group <- "Current RH"
-    current_val_col <- "current_rh"
-  } else {
-    stop("Invalid input for 'sensor' - must be either 'T', 'RH', or 'PM'")
-  }
-
   map <- map |>
     leaflet::addCircleMarkers(
       data = dat,
-      group = group,
-      radius = ~ dplyr::case_when(
-        entirely_offline ~ 5,
-        flagged ~ 7,
-        TRUE ~ 3
-      ),
+      group = groups[1],
+      radius = ~flag_radius,
       weight = 1,
       color = "black",
-      fillColor = fills,
+      fillColor = ~flag_fills,
       fillOpacity = 1,
-      label = ~ lapply(label, htmltools::HTML),
+      label = ~label,
       labelOptions = labelOptions_inter,
       popup = ~popup,
-      popupOptions = leaflet::popupOptions(minWidth = popup_width)
+      popupOptions = popup_options
     ) |>
     leaflet::addCircleMarkers(
       data = dat,
-      group = current_group,
-      radius = ~ dplyr::case_when(
-        is.na(get(current_val_col)) ~ 3,
-        # flagged ~ 7,
-        TRUE ~ 5
-      ),
+      group = groups[2],
+      radius = ~value_radius,
       weight = 1,
       color = "black",
-      fillColor = current_fills,
+      fillColor = ~value_fills,
       fillOpacity = 1,
-      label = ~ lapply(label, htmltools::HTML),
+      label = ~label,
       labelOptions = labelOptions_inter,
       popup = ~popup,
-      popupOptions = leaflet::popupOptions(minWidth = popup_width)
+      popupOptions = popup_options
     )
   # Add legend only once (addAQSUStatusMarkers is called seperately for flagged/unflagged)
   if (!flagged) {
     map <- map |>
-      addLegendCustom(
-        colors = pal(flag_groups),
-        labels = flag_group_labels,
-        group = group,
-        sizes = leg_sizes,
-        opacity = 1,
-        title = paste(
-          "Most common status<br>for the past",
-          duration_days,
-          "days"
-        )
-      ) |>
-      leaflet::addLegend(
-        pal = current_val_pal,
-        values = dat[[current_val_col]] |> c(current_domain) |> na.omit(),
-        group = current_group,
-        opacity = 1,
-        title = "Current Value"
+      add_marker_legends(
+        dat = dat,
+        sensor = sensor,
+        groups = groups,
+        palettes = palettes,
+        flag_columns = flag_columns,
+        value_columns = value_columns,
+        totals = totals,
+        duration_days = duration_days
       )
   }
   return(map)
+}
+
+make_marker_palettes <- function(dat, value_domains, flag_columns) {
+  main_colours <- c(
+    wesanderson::wes_palette("Royal1")[1],
+    wesanderson::wes_palette("Darjeeling1")[2],
+    wesanderson::wes_palette("FantasticFox1")[c(3, 2, 4, 5)]
+  )
+  palettes <- list(
+    flag = list(
+      PM = main_colours,
+      T = main_colours[-3],
+      RH = main_colours[-3]
+    ),
+    values = list(
+      PM = leaflet::colorNumeric("viridis", domain = value_domains$PM),
+      T = leaflet::colorNumeric("turbo", domain = value_domains$T),
+      RH = leaflet::colorNumeric(
+        "turbo",
+        reverse = TRUE,
+        domain = value_domains$RH
+      )
+    )
+  )
+  # flag colours -> palette functions
+  palettes$flag <- names(palettes$flag) |>
+    setNames(names(palettes$flag)) |>
+    lapply(\(pal_sensor) {
+      colours <- palettes$flag[[pal_sensor]]
+      flag_col <- flag_columns[[pal_sensor]]
+      flag_groups <- dat[[flag_col]] |> levels()
+      leaflet::colorFactor(
+        levels = flag_groups,
+        ordered = TRUE,
+        palette = colours,
+        domain = dat[[flag_col]]
+      )
+    })
+  return(palettes)
+}
+
+add_marker_legends <- function(
+  map,
+  dat,
+  sensor,
+  groups,
+  palettes,
+  flag_columns,
+  value_columns,
+  totals,
+  duration_days
+) {
+  flag_groups <- dat[[flag_columns[[sensor]]]] |> levels()
+  flag_group_labels <- flag_groups |>
+    paste0(" (n= ", totals[[sensor]], ")")
+  legend_sizes <- list(
+    PM = c(4, 3, 5, 5, 5, 5) * 2,
+    T = c(4, 3, 5, 5, 5) * 2,
+    RH = c(4, 3, 5, 5, 5) * 2
+  )
+  map <- map |>
+    addLegendCustom(
+      colors = palettes$flag[[sensor]](flag_groups),
+      labels = flag_group_labels,
+      group = groups[1],
+      sizes = legend_sizes[[sensor]],
+      opacity = 1,
+      title = "Most common status<br>for the past %s days" |>
+        sprintf(duration_days)
+    ) |>
+    leaflet::addLegend(
+      pal = palettes$values[[sensor]],
+      values = dat[[value_columns[[sensor]]]] |>
+        c(domains[[sensor]]) |>
+        na.omit(),
+      group = groups[2],
+      opacity = 1,
+      title = "Current Value"
+    )
 }
