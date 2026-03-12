@@ -160,11 +160,6 @@ map <- aqmapr::make_leaflet_map(
     timestamp = max(obs$date) |> lubridate::with_tz("America/Edmonton"),
     use_browser_timezone = FALSE
   ) |>
-  add_monitor_markers(
-    map_data = map_data,
-    duration_days = duration_days,
-    popup_width_px = popup_width_px
-  ) |>
   # Add layers control to topright
   leaflet::addLayersControl(
     overlayGroups = c(
@@ -176,6 +171,11 @@ map <- aqmapr::make_leaflet_map(
       "Current RH"
     ),
     options = leaflet::layersControlOptions(collapsed = FALSE)
+  ) |>
+  add_monitor_markers(
+    map_data = map_data,
+    duration_days = duration_days,
+    popup_width_px = popup_width_px
   ) |>
   # Add search menu
   add_search_menu(target_groups = "PM2.5 Sensors", search_property = "label") |>
