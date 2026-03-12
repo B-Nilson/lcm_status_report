@@ -4,6 +4,7 @@ source("R/status-functions.R")
 source("R/load_report_data.R")
 source("R/flagging.R")
 source("R/map_controls.R")
+source("R/monitor_markers.R")
 
 # Import fonts and functions
 # extrafont::font_import() # only run once per machine
@@ -146,18 +147,6 @@ map_data <- map_data |>
 
 # Map of AQSU Flags -------------------------------------------------------
 
-totals <- list(
-  pm = map_data$flag_group_pm |>
-    levels() |>
-    sapply(\(fg) dplyr::filter(map_data, flag_group_pm == fg) |> nrow()),
-  temp = map_data$flag_group_t |>
-    levels() |>
-    sapply(\(fg) dplyr::filter(map_data, flag_group_t == fg) |> nrow()),
-  rh = map_data$flag_group_rh |>
-    levels() |>
-    sapply(\(fg) dplyr::filter(map_data, flag_group_rh == fg) |> nrow())
-)
-
 map <- aqmapr::make_leaflet_map(
   page_title = page_title,
   track_map_state = TRUE,
@@ -167,6 +156,11 @@ map <- aqmapr::make_leaflet_map(
   aqmapr::add_map_timestamp(
     timestamp = max(obs$date) |> lubridate::with_tz("America/Edmonton"),
     use_browser_timezone = FALSE
+  ) |>
+  add_monitor_markers(
+    map_data = map_data,
+    duration_days = duration_days,
+    popup_width_px = popup_width_px
   ) |>
   # Add layers control to topright
   leaflet::addLayersControl(
@@ -180,65 +174,8 @@ map <- aqmapr::make_leaflet_map(
     ),
     options = leaflet::layersControlOptions(collapsed = FALSE)
   ) |>
-  # Add flagged PM2.5 markers on top of unflagged + legend
-  addAQSUStatusMarkers(
-    dat = dplyr::filter(map_data, !is_flagged_pm | entirely_offline),
-    totals = totals,
-    flagged = FALSE,
-    sensor = "PM",
-    duration_days = duration_days,
-    popup_width = popup_width_px
-  ) |>
-  addAQSUStatusMarkers(
-    dat = dplyr::filter(map_data, is_flagged_pm & !entirely_offline),
-    totals = totals,
-    flagged = TRUE,
-    sensor = "PM",
-    duration_days = duration_days,
-    popup_width = popup_width_px
-  ) |>
-  # Add flagged T markers on top of unflagged + legend
-  addAQSUStatusMarkers(
-    dat = dplyr::filter(map_data, !is_flagged_temp | entirely_offline),
-    totals = totals,
-    flagged = FALSE,
-    sensor = "T",
-    duration_days = duration_days,
-    popup_width = popup_width_px
-  ) |>
-  addAQSUStatusMarkers(
-    dat = dplyr::filter(map_data, is_flagged_temp & !entirely_offline),
-    totals = totals,
-    flagged = TRUE,
-    sensor = "T",
-    duration_days = duration_days,
-    popup_width = popup_width_px
-  ) |>
-  # Add flagged RH markers on top of unflagged + legend
-  addAQSUStatusMarkers(
-    dat = dplyr::filter(map_data, !is_flagged_rh | entirely_offline),
-    totals = totals,
-    flagged = FALSE,
-    sensor = "RH",
-    duration_days = duration_days,
-    popup_width = popup_width_px
-  ) |>
-  addAQSUStatusMarkers(
-    dat = dplyr::filter(map_data, is_flagged_rh & !entirely_offline),
-    totals = totals,
-    flagged = TRUE,
-    sensor = "RH",
-    duration_days = duration_days,
-    popup_width = popup_width_px
-  ) |>
   # Add search menu
   add_search_menu(target_groups = "PM2.5 Sensors", search_property = "label") |>
-  # Hide T/RH sensor markers to start
-  leaflet::hideGroup("Temperature Sensor") |>
-  leaflet::hideGroup("Humidity Sensor") |>
-  leaflet::hideGroup("Current PM2.5") |>
-  leaflet::hideGroup("Current Temperature") |>
-  leaflet::hideGroup("Current RH") |>
   # Include custom JS/CSS
   aqmapr::include_scripts(
     paths = c("css/report_stylesheet.css", "js/status_map.js")
