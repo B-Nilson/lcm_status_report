@@ -10,13 +10,11 @@ load_report_data <- function(
       .warn = "Failed to connect to database - using cached data."
     )
   if (is.null(db)) {
-    if (!file.exists(cache_path)) {
-      server_file <- paste0(
-        "https://aqmap.ca/aqmap/outputs/",
-        basename(cache_path)
-      )
-      server_file |> download.file(destfile = cache_path, mode = "wb")
-    }
+    server_file <- paste0(
+      "https://aqmap.ca/aqmap/outputs/",
+      basename(cache_path)
+    )
+    server_file |> download.file(destfile = cache_path, mode = "wb")
     return(readRDS(cache_path))
   } else {
     on.exit(RPostgres::dbDisconnect(db))
