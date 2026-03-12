@@ -3,6 +3,7 @@
 source("R/status-functions.R")
 source("R/load_report_data.R")
 source("R/flagging.R")
+source("R/map_controls.R")
 
 # Import fonts and functions
 # extrafont::font_import() # only run once per machine
@@ -145,15 +146,6 @@ map_data <- map_data |>
 
 # Map of AQSU Flags -------------------------------------------------------
 
-search_options <- leaflet.extras::searchFeaturesOptions(
-  propertyName = "label",
-  zoom = 12,
-  openPopup = TRUE,
-  firstTipSubmit = TRUE,
-  autoCollapse = TRUE,
-  hideMarkerOnCollapse = TRUE
-)
-
 totals <- list(
   pm = map_data$flag_group_pm |>
     levels() |>
@@ -240,10 +232,7 @@ map <- aqmapr::make_leaflet_map(
     popup_width = popup_width_px
   ) |>
   # Add search menu
-  leaflet.extras::addSearchFeatures(
-    targetGroups = "PM2.5 Sensors",
-    options = search_options
-  ) |>
+  add_search_menu(target_groups = "PM2.5 Sensors", search_property = "label") |>
   # Hide T/RH sensor markers to start
   leaflet::hideGroup("Temperature Sensor") |>
   leaflet::hideGroup("Humidity Sensor") |>
