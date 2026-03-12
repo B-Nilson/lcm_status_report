@@ -147,7 +147,7 @@ map_data <- map_data |>
 
 # Map of AQSU Flags -------------------------------------------------------
 
-map <- aqmapr::make_leaflet_map(
+aqmapr::make_leaflet_map(
   base_maps = c(`Light Theme` = "OpenStreetMap"),
   layer_control_titles = NULL,
   add_basemaps_to_layer_control = FALSE,
