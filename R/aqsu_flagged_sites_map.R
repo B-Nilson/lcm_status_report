@@ -153,7 +153,8 @@ map <- aqmapr::make_leaflet_map(
   add_basemaps_to_layer_control = FALSE,
   page_title = page_title,
   track_map_state = TRUE,
-  center_on_opened_popup = TRUE
+  center_on_opened_popup = TRUE,
+  include_scalebar = FALSE
 ) |>
   aqmapr::include_font(font_urls = inter_font_url, force = TRUE) |>
   aqmapr::add_map_timestamp(
@@ -177,8 +178,9 @@ map <- aqmapr::make_leaflet_map(
     duration_days = duration_days,
     popup_width_px = popup_width_px
   ) |>
-  # Add search menu
+  # Add search menu and scale bar
   add_search_menu(target_groups = "PM2.5 Sensors", search_property = "label") |>
+  leaflet::addScaleBar(position = "bottomleft") |>
   # Include custom JS/CSS
   aqmapr::include_scripts(
     paths = c("css/report_stylesheet.css", "js/status_map.js")
