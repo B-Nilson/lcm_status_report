@@ -185,7 +185,7 @@ aqmapr::make_leaflet_map(
   aqmapr::include_scripts(
     paths = c("css/report_stylesheet.css", "js/status_map.js")
   ) |>
-  htmlwidgets::onRender("handle_page_render") |>
+  htmlwidgets::onRender("handle_render") |>
   # Save map to html page
   aqmapr::save_map(
     save_to = output_paths$map,

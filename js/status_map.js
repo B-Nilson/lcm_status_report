@@ -1,4 +1,4 @@
-function handle_page_render() {
+function handle_render() {
     improve_search_button();
     add_layer_control_title('Inspect AQSU PurpleAir:');
     convert_layer_control_to_radio_buttons();
