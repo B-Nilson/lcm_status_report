@@ -35,7 +35,7 @@ function add_layer_control_title(title) {
 
 function change_plot(element) {
     img = element.parentElement.childNodes[0];
-    is_flag_plot = img.src.match(/removed/g) === null;
+    is_flag_plot = img.src.match(/cleaned/g) === null;
     if (is_flag_plot) {
         img.src = img.src.replace('.png', '_cleaned.png');
     } else {
