@@ -107,22 +107,15 @@ map_data <- obs |>
   )
 
 # Make timeseries data for each monitor
+plot_cols <- c(
+  "site_id",
+  "name",
+  "date",
+  value_cols,
+  paste0(value_cols, "_flag")
+)
 map_data$plot_data <- obs |>
-  dplyr::select(
-    site_id,
-    name,
-    date,
-    pm25,
-    pm25_a,
-    pm25_b,
-    pm25_a_flag,
-    pm25_b_flag,
-    pm25_flag,
-    temperature,
-    temperature_flag,
-    rh,
-    rh_flag
-  ) |>
+  dplyr::select(dplyr::all_of(plot_cols)) |>
   dplyr::mutate(site_id_copy = site_id) |>
   tidyr::nest(.by = site_id_copy) |>
   dplyr::pull(data)
