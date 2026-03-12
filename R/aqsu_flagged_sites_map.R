@@ -50,6 +50,7 @@ earliest_date <- latest_date - lubridate::days(duration_days)
 
 # Load Past 2 Weeks of AQSU Data ------------------------------------------
 
+dirname(obs_cache_rds) |> dir.create(showWarnings = FALSE, recursive = TRUE)
 obs <- latest_date |>
   load_report_data(
     duration_days = duration_days,
