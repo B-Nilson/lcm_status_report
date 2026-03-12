@@ -1,0 +1,100 @@
+:root, body { 
+  font-family: 'Inter', sans-serif !important; 
+}
+@supports (font-variation-settings: normal) {
+  :root { font-family: 'Inter var', sans-serif; }
+}
+
+:root{
+  font-size:16px;
+}
+
+.main-container {
+  max-width: 100% !important;
+  margin: auto;
+}
+.html-widget {
+  margin: auto;
+}
+
+body {
+  margin:auto;
+  max-width: 1400px;
+  background-color: #F5F5F5;
+}
+
+.container-fluid{
+  background-color: white;
+  padding-left: 1.5rem;
+  padding-right: 1.5rem;
+}
+
+.card{
+  border-color: #ddd !important;
+  margin-bottom: 0.5rem !important;
+  margin-top: 0.5rem !important;
+}
+
+.card-body{
+  padding-left: 0.5rem;
+  padding-right: 0.5rem;
+  padding-top: 0rem;
+  padding-bottom: 0rem;
+}
+
+.tabbed-pane{
+  padding-top: 0px;
+}
+
+::placeholder { /* Chrome, Firefox, Opera, Safari 10.1+ */
+  color: #ccc;
+  opacity: 1; /* Firefox */
+}
+
+:-ms-input-placeholder { /* Internet Explorer 10-11 */
+  color: #ccc;
+}
+
+::-ms-input-placeholder { /* Microsoft Edge */
+  color: #ccc;
+}
+
+iframe{
+  margin-top: 0rem;
+}
+
+h1{
+  font-size: 2rem;
+}
+h2{
+  margin-top: 0.5rem !important;
+  font-size: 1.6rem;
+}
+.h3, h3 {
+    font-size: calc(1rem + .6vw);
+}
+h4{
+  font-size: 1.2rem;
+}
+Reactable {
+  font-size: 0.8rem;
+}
+summary {
+  font-weight: bold;
+}
+p, summary, details {
+  margin-top: 0.5rem !important;
+  margin-bottom: 0.5rem !important;
+}
+
+.tabset-dropdown > .nav-tabs:hover{
+  background-color: #73d2e52e;
+  cursor: pointer;
+}
+.nav-tabs>li>a{
+  text-decoration: none;
+  cursor: pointer !important;
+}
+.nav, .nav-tabs, .active{
+  cursor: pointer;
+}

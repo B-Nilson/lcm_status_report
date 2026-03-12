@@ -241,7 +241,7 @@ map <- aqmapr::make_leaflet_map(
   leaflet::hideGroup("Current RH") |>
   # Include custom JS/CSS
   aqmapr::include_scripts(
-    paths = c("../../css/report_stylesheet.css", "../../js/status_map.js")
+    paths = c("css/report_stylesheet.css", "js/status_map.js")
   ) |>
   htmlwidgets::onRender("handle_page_render") # see status_map.js
 
