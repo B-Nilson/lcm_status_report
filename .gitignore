@@ -6,3 +6,5 @@
 .quarto
 *.rds
 deployments/plots/**
+deployments/libs/**
+deployments/index.html
