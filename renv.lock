@@ -680,7 +680,7 @@
       "RemoteUsername": "B-Nilson",
       "RemoteRepo": "aqmapr",
       "RemoteRef": "main",
-      "RemoteSha": "7e3c0bb69fbb9783c4fa2ba238ccf8bc8fc2baa7",
+      "RemoteSha": "6344c95bd4476bd201c9b01341eb5e3f75c0f865",
       "RemoteHost": "api.github.com",
       "Remotes": "github::B-Nilson/handyr, github::B-Nilson/aqhi, github::B-Nilson/canadata"
     },
