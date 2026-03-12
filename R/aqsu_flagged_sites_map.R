@@ -122,6 +122,8 @@ map_data$plot_data <- obs |>
   dplyr::pull(data)
 
 # Make popup html, creating and saving figures along the way
+file.path(report_dir, img_dir) |>
+  dir.create(showWarnings = FALSE, recursive = TRUE)
 map_data <- map_data |>
   dplyr::mutate(
     popup = .data$plot_data |>
