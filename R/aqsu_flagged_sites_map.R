@@ -33,12 +33,12 @@ page_title <- "AQSU Status"
 p_hours_flagged_thresh <- 0.15
 
 # Where to save things
-report_dir <- "../../deployments/reports/aqsu_status/"
+report_dir <- "deployments"
 img_dir <- "plots" # relative to report_dir
 obs_cache_rds <- "data/aqsu_past_2_week.rds"
 output_paths <- list(
-  map = "../../deployments/reports/aqsu_status/index.html",
-  data = "../../deployments/reports/aqsu_status/aqsu_monitor_status.csv"
+  map = "deployments/index.html",
+  data = "deployments/aqsu_monitor_status.csv"
 )
 
 # TODO: include as default in aqmapr
