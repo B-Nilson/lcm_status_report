@@ -1,0 +1,37 @@
+report_period:
+  latest_date: now # YYYY-MM-DD HH:MM:SS or "now" (UTC timezone)
+  duration_days: 7
+  averaging_period: "10 mins"
+
+display:
+  page_title: AQSU Status # displayed in browser tab
+  timestamp_tz: America/Edmonton
+  base_map_provider: OpenStreetMap
+  p_hours_flagged_thresh: 0.15 # display sensor as flagged if more than this fraction of hours are flagged
+  popup_width_px: 600
+
+columns:
+  meta:
+    site_id: site_id
+    date: date
+    pm25_qc: qaqc_flag_pm2.5
+
+  values:
+    pm25: pm2.5_validated
+    pm25_a: pm2.5_a
+    pm25_b: pm2.5_b
+    temperature: temperature
+    rh: rh
+
+dirs:
+  output: deployments
+  map_libs: libs # relative to output dir
+  plots: plots # relative to output dir
+  css: css
+  js: js
+
+files: # relative to output dir
+  map: index.html
+  data: aqsu_monitor_status.csv
+  cache: aqsu_past_{days}_days.rds # {days} will be replaced with duration_days if present
+  save_figures: true # set to FALSE for faster testing

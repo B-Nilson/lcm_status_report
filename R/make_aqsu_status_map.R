@@ -1,14 +1,4 @@
-# What data to display
-meta_cols <- c("site_id", "date", pm25_qc = "qaqc_flag_pm2.5")
-value_cols <- c(
-  pm25 = "pm2.5_validated",
-  pm25_a = "pm2.5_a",
-  pm25_b = "pm2.5_b",
-  "temperature",
-  "rh"
-)
-timestamp_tz <- "America/Edmonton"
-
+# TODO: priority list for repair/replace with info on install/failure date, what failed, env. conditions ecposed to
 make_aqsu_status_map <- function(
   latest_date = lubridate::now("UTC"),
   duration_days = 7,
@@ -187,11 +177,3 @@ make_aqsu_status_map <- function(
 
   invisible(map)
 }
-
-make_aqsu_status_map(
-  meta_cols = meta_cols,
-  value_cols = value_cols,
-  timestamp_tz = timestamp_tz
-)
-
-# TODO: priority list for repair/replace with info on install/failure date, what failed, env. conditions ecposed to
