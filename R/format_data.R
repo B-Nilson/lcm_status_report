@@ -1,4 +1,3 @@
-
 make_status_map_summary <- function(obs, value_cols, flag_threshold = 0.15) {
   flag_levels <- c(
     "Good" = 0,
@@ -14,6 +13,14 @@ make_status_map_summary <- function(obs, value_cols, flag_threshold = 0.15) {
   values <- c("pm25", unname(value_cols)) |>
     c("pm25_flagged", names(value_cols))
   map_data <- obs |>
+    # Add missing obs (before flagging) flags
+    dplyr::mutate(
+      pm25_a_missing = is.na(pm25_a),
+      pm25_b_missing = is.na(pm25_b),
+      pm25_missing = pm25_a_missing & pm25_b_missing,
+      temperature_missing = is.na(temperature),
+      rh_missing = is.na(rh)
+    ) |>
     dplyr::group_by(site_id, lng, lat, name) |>
     dplyr::summarise(
       .groups = "drop",

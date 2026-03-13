@@ -79,31 +79,9 @@ obs <- obs |>
     time_step = averaging_period,
     duration_days = duration_days
   ) |>
-  # Flag temperature/rh data and breakdown pm25 flag # TODO: apply to RH as well
+  # Flag temperature/rh data and breakdown pm25 flag
   add_purpleair_flags() |>
-  dplyr::mutate(
-    # Combine A/B mean assuming nothing is flagged
-    pm25 = elementwise_mean_no_na(pm25_a, pm25_b),
-    # Add "_flagged" columns with flagged values replaced with NA
-    dplyr::across(
-      dplyr::all_of(value_cols_flagged),
-      \(x) {
-        val_col <- dplyr::cur_column()
-        flag_vals <- get(val_col |> paste0("_flag"))
-        x[flag_vals > 0] <- NA
-        return(x)
-      }
-    ),
-    # Combine A/B mean after censoring flagged data
-    pm25_flagged = elementwise_mean_no_na(pm25_a_flagged, pm25_b_flagged),
-    pm25_flagged = ifelse(pm25_flag, NA, pm25_flagged),
-    # Add missing obs (before flagging) flags
-    pm25_a_missing = is.na(pm25_a),
-    pm25_b_missing = is.na(pm25_b),
-    pm25_missing = pm25_a_missing & pm25_b_missing,
-    temperature_missing = is.na(temperature),
-    rh_missing = is.na(rh)
-  ) |>
+  apply_purpleair_flags(value_cols_flagged = value_cols_flagged) |>
   dplyr::arrange(site_id, date)
 
 # Make summary dataset ----------------------------------------------------

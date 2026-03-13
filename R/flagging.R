@@ -1,3 +1,24 @@
+apply_purpleair_flags <- function(flagged_obs, value_cols_flagged) {
+  flagged_obs |>
+    dplyr::mutate(
+      # Add "_flagged" columns with flagged values replaced with NA
+      dplyr::across(
+        dplyr::all_of(value_cols_flagged),
+        \(x) {
+          val_col <- dplyr::cur_column()
+          flag_vals <- get(val_col |> paste0("_flag"))
+          x[flag_vals > 0] <- NA
+          return(x)
+        }
+      ),
+      # Combine A/B mean assuming nothing is flagged
+      pm25 = elementwise_mean_no_na(pm25_a, pm25_b),
+      # Combine A/B mean after censoring flagged data
+      pm25_flagged = elementwise_mean_no_na(pm25_a_flagged, pm25_b_flagged),
+      pm25_flagged = ifelse(pm25_flag, NA, pm25_flagged)
+    )
+}
+
 add_purpleair_flags <- function(obs) {
   obs |>
     dplyr::group_by(site_id) |>
