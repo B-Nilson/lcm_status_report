@@ -264,3 +264,32 @@ add_marker_legends <- function(
         sub(pattern = "Temperature", replacement = "Temp.", fixed = TRUE)
     )
 }
+
+add_legend_custom <- function(
+  map,
+  colours,
+  labels,
+  sizes = rep(10, length(colours)),
+  colour_class = "custom-legend-colour",
+  label_class = "custom-legend-label",
+  ...
+) {
+  # Adjust margins to center smaller sizes
+  normal_margin <- 4
+  margin_offsets <- (max(sizes) - sizes)
+  margins <- "margin-left: %spx; margin-right: %spx" |>
+    sprintf(
+      floor(margin_offsets / 2),
+      normal_margin + ceiling(margin_offsets / 2)
+    )
+  margins <- ifelse(margin_offsets == 0, "", margins)
+
+  sizes <- paste0(sizes, "px")
+  colours <- "%s; width: %s; height: %s; %s\" class=\"%s\"" |>
+    sprintf(colours, sizes, sizes, margins, colour_class)
+  labels <- "<div class=\"%s\" style=\"line-height: %s;\">%s</div>" |>
+    sprintf(label_class, sizes, labels)
+
+  map |>
+    leaflet::addLegend(colors = colours, labels = labels, ...)
+}

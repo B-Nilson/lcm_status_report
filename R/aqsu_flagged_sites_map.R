@@ -1,10 +1,13 @@
 # Packages/Functions ------------------------------------------------------
 
-source("R/status-functions.R")
 source("R/load_report_data.R")
+source("R/format_data.R")
 source("R/flagging.R")
 source("R/map_controls.R")
 source("R/monitor_markers.R")
+source("R/marker_hovers.R")
+source("R/marker_popups.R")
+source("R/plotting.R")
 
 # Import fonts and functions
 # extrafont::font_import() # only run once per machine
