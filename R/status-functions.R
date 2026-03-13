@@ -329,7 +329,8 @@ make_site_flag_plot <- function(site_data, earliest_date) {
   all_pm_missing <- all(is.na(site_data$pm25))
   all_temp_missing <- all(is.na(site_data$temperature))
   all_rh_missing <- all(is.na(site_data$rh))
-  if (all_pm_missing & all_temp_missing & all_rh_missing) {
+  all_missing <- all_pm_missing & all_temp_missing & all_rh_missing
+  if (all_missing) {
     return(NULL)
   }
   plots <- list(

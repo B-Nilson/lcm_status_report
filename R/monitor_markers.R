@@ -116,7 +116,7 @@ add_monitor_network_markers <- function(
       value_domains = value_domains,
       flag_columns = flag_columns
     )
-  
+
   # Apply palettes to sensor flag and value columns
   groups <- c(layer_names$flag[[sensor]], layer_names$values[[sensor]])
   dat <- dat |>
