@@ -43,6 +43,9 @@ output_paths <- list(
   data = "deployments/aqsu_monitor_status.csv"
 )
 
+# What JS/CSS files to include?
+js_css_paths <- c("css/report_stylesheet.css", "js/main.js", "js/helpers.js")
+
 # TODO: include as default in aqmapr
 inter_font_url <- c(
   "Inter" = 'https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap'
@@ -182,9 +185,7 @@ aqmapr::make_leaflet_map(
   add_search_menu(target_groups = "PM2.5 Sensors", search_property = "label") |>
   leaflet::addScaleBar(position = "bottomleft") |>
   # Include custom JS/CSS
-  aqmapr::include_scripts(
-    paths = c("css/report_stylesheet.css", "js/status_map.js")
-  ) |>
+  aqmapr::include_scripts(paths = js_css_paths) |>
   htmlwidgets::onRender("handle_render") |>
   # Save map to html page
   aqmapr::save_map(

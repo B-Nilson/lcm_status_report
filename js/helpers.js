@@ -1,11 +1,3 @@
-function handle_render() {
-    improve_search_button();
-    add_layer_control_titles(
-        ['Inspect Flags for:', 'View Observerations:'],
-        [0, 3]
-    );
-    convert_layer_control_to_radio_buttons();
-};
 
 // Convert layer control to radio buttons (so only one selected at a time) # TODO: move to aqmapr
 function convert_layer_control_to_radio_buttons() {
