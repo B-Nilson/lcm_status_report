@@ -1,5 +1,5 @@
 parse_params <- function(params_file = "params.yml") {
-  params <- yaml::read_yaml("params.yml")
+  params <- yaml::read_yaml(params_file)
   if (params$report_period$latest_date == "now") {
     params$report_period$latest_date <- lubridate::now("UTC")
   } else {
