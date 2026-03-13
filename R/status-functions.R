@@ -1,28 +1,30 @@
-addLegendCustom <- function(map, colors, labels, sizes, ...) {
-  colorAdditions <- paste0(
-    colors,
-    "; vertical-align: middle; border-radius: 50%; width:",
-    sizes,
-    "px; height:",
-    sizes,
-    "px"
-  )
-  labelAdditions <- paste0(
-    "<div style='display: inline-block;height: ",
-    sizes,
-    "px;margin-top: 4px;line-height: ",
-    sizes,
-    "px;'>",
-    labels,
-    "</div>"
-  )
+add_legend_custom <- function(
+  map,
+  colours,
+  labels,
+  sizes = rep(10, length(colours)),
+  colour_class = "custom-legend-colour",
+  label_class = "custom-legend-label",
+  ...
+) {
+  # Adjust margins to center smaller sizes
+  normal_margin <- 4
+  margin_offsets <- (max(sizes) - sizes)
+  margins <- "margin-left: %spx; margin-right: %spx" |>
+    sprintf(
+      floor(margin_offsets / 2),
+      normal_margin + ceiling(margin_offsets / 2)
+    )
+  margins <- ifelse(margin_offsets == 0, "", margins)
 
-  return(leaflet::addLegend(
-    map,
-    colors = colorAdditions,
-    labels = labelAdditions,
-    ...
-  ))
+  sizes <- paste0(sizes, "px")
+  colours <- "%s; width: %s; height: %s; %s\" class=\"%s\"" |>
+    sprintf(colours, sizes, sizes, margins, colour_class)
+  labels <- "<div class=\"%s\" style=\"line-height: %s;\">%s</div>" |>
+    sprintf(label_class, sizes, labels)
+
+  map |>
+    leaflet::addLegend(colors = colours, labels = labels, ...)
 }
 
 complete_active_site_records <- function(

@@ -241,8 +241,8 @@ add_marker_legends <- function(
     RH = c(4, 3, 5, 5, 5) * 2
   )
   map <- map |>
-    addLegendCustom(
-      colors = palettes$flag[[sensor]](flag_groups),
+    add_legend_custom(
+      colours = palettes$flag[[sensor]](flag_groups),
       labels = flag_group_labels,
       group = groups[1],
       sizes = legend_sizes[[sensor]],

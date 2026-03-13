@@ -20,3 +20,16 @@ body {
 .leaflet-tooltip {
   font-size: larger !important;
 }
+
+.custom-legend-colour {
+  vertical-align: middle !important;
+  border-radius: 50%;
+  outline-width: 1px;
+  outline-style: solid;
+  outline-color: black;
+}
+
+.custom-legend-label {
+  display: inline-block;
+  margin-top: 4px;
+}
