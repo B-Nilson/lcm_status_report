@@ -92,7 +92,7 @@ add_monitor_network_markers <- function(
       T = "Temperature Sensor",
       RH = "Humidity Sensor"
     ),
-    current = list(
+    values = list(
       PM = "Current PM2.5",
       T = "Current Temperature",
       RH = "Current RH"
@@ -101,7 +101,7 @@ add_monitor_network_markers <- function(
   sensors_long <- list(PM = "pm25", T = "temperature", RH = "rh")
   value_columns <- sensors_long |> lapply(\(x) paste0("current_", x))
   hover_columns <- sensors_long |> lapply(\(x) paste0("hover_", x))
-  flag_columns <- paste0("flag_group_", names(sensors_long)) |>
+  flag_columns <- paste0("flag_group_", tolower(names(sensors_long))) |>
     as.list() |>
     setNames(names(sensors_long))
 
@@ -128,7 +128,7 @@ add_monitor_network_markers <- function(
         .default = 3
       ),
       value_fills = get(value_columns[[sensor]]) |>
-        handyr::clamp(range = domains[[sensor]]) |>
+        handyr::clamp(range = value_domains[[sensor]]) |>
         palettes$values[[sensor]](),
       value_radius = dplyr::case_when(
         is.na(get(value_columns[[sensor]])) ~ 3,
@@ -179,6 +179,7 @@ add_monitor_network_markers <- function(
         flag_columns = flag_columns,
         value_columns = value_columns,
         totals = totals,
+        value_domains = value_domains,
         duration_days = duration_days
       )
   }
@@ -233,6 +234,7 @@ add_marker_legends <- function(
   flag_columns,
   value_columns,
   totals,
+  value_domains,
   duration_days
 ) {
   flag_groups <- dat[[flag_columns[[sensor]]]] |> levels()
@@ -256,7 +258,7 @@ add_marker_legends <- function(
     leaflet::addLegend(
       pal = palettes$values[[sensor]],
       values = dat[[value_columns[[sensor]]]] |>
-        c(domains[[sensor]]) |>
+        c(value_domains[[sensor]]) |>
         na.omit(),
       group = groups[2],
       opacity = 1,

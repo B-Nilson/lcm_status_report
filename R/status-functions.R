@@ -734,7 +734,7 @@ make_status_map_summary <- function(obs, value_cols, flag_threshold = 0.15) {
   # Add hover html for each point
   map_data |>
     dplyr::mutate(
-      hover_pm = map_data |>
+      hover_pm25 = map_data |>
         aqsu_status_hover(
           is_bad = .data$is_flagged_pm &
             !.data$entirely_offline,
