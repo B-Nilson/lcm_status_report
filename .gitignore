@@ -8,3 +8,4 @@
 deployments/plots/**
 deployments/libs/**
 deployments/index.html
+deployments/*.csv
