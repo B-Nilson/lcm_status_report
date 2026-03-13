@@ -240,6 +240,7 @@ add_marker_legends <- function(
     T = c(4, 3, 5, 5, 5) * 2,
     RH = c(4, 3, 5, 5, 5) * 2
   )
+  value_units <- list(PM = " µg m⁻³", T = " °C", RH = "%")
   map <- map |>
     add_legend_custom(
       colours = palettes$flag[[sensor]](flag_groups),
@@ -247,16 +248,18 @@ add_marker_legends <- function(
       group = groups[1],
       sizes = legend_sizes[[sensor]],
       opacity = 1,
-      title = "Most common status<br>for the past %s days" |>
-        sprintf(duration_days)
+      title = "Most Common %s<br>Status for the Past %s Days" |>
+        sprintf(groups[1], duration_days)
     ) |>
     leaflet::addLegend(
       pal = palettes$values[[sensor]],
       values = dat[[value_columns[[sensor]]]] |>
         c(value_domains[[sensor]]) |>
         na.omit(),
+      labFormat = leaflet::labelFormat(suffix = value_units[[sensor]]),
       group = groups[2],
       opacity = 1,
-      title = "Current Value"
+      title = groups[2] |>
+        sub(pattern = "Temperature", replacement = "Temp.", fixed = TRUE)
     )
 }
