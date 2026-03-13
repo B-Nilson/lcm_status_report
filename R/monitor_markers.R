@@ -138,9 +138,6 @@ add_monitor_network_markers <- function(
     )
 
   popup_options <- leaflet::popupOptions(minWidth = popup_width)
-  labelOptions_inter <- leaflet::labelOptions(
-    style = list("font-family" = "Inter", "font-size" = "12px")
-  )
   map <- map |>
     leaflet::addCircleMarkers(
       data = dat,
@@ -151,7 +148,6 @@ add_monitor_network_markers <- function(
       fillColor = ~flag_fills,
       fillOpacity = 1,
       label = ~label,
-      labelOptions = labelOptions_inter,
       popup = ~popup,
       popupOptions = popup_options
     ) |>
@@ -164,7 +160,6 @@ add_monitor_network_markers <- function(
       fillColor = ~value_fills,
       fillOpacity = 1,
       label = ~label,
-      labelOptions = labelOptions_inter,
       popup = ~popup,
       popupOptions = popup_options
     )

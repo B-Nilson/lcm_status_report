@@ -16,3 +16,7 @@ body {
 .leaflet-control-layers-overlays {
   font-size: larger !important;
 }
+
+.leaflet-tooltip {
+  font-size: larger !important;
+}
