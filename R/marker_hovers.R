@@ -1,4 +1,3 @@
-
 aqsu_status_hover <- function(
   dat,
   is_bad = FALSE,

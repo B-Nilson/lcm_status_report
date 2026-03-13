@@ -1,4 +1,3 @@
-
 aqsu_status_popup <- function(
   plot_data,
   earliest_date,

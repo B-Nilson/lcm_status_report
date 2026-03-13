@@ -254,7 +254,7 @@ add_marker_legends <- function(
     leaflet::addLegend(
       pal = palettes$values[[sensor]],
       values = dat[[value_columns[[sensor]]]] |>
-        handyr::clamp(value_domains[[sensor]]) |> 
+        handyr::clamp(value_domains[[sensor]]) |>
         c(value_domains[[sensor]]) |>
         na.omit(),
       labFormat = leaflet::labelFormat(suffix = value_units[[sensor]]),

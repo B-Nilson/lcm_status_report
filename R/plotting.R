@@ -1,4 +1,3 @@
-
 make_site_flag_plot <- function(site_data, earliest_date) {
   all_pm_missing <- all(is.na(site_data$pm25))
   all_temp_missing <- all(is.na(site_data$temperature))
