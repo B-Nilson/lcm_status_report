@@ -155,10 +155,11 @@ aqmapr::make_leaflet_map(
   layer_control_titles = NULL,
   add_basemaps_to_layer_control = FALSE,
   page_title = page_title,
-  track_map_state = TRUE,
+  track_map_state = FALSE,
   center_on_opened_popup = TRUE,
   include_scalebar = FALSE
 ) |>
+  leaflet.extras::addHash() |> # track map center/zoom
   aqmapr::include_font(font_urls = inter_font_url, force = TRUE) |>
   aqmapr::add_map_timestamp(
     timestamp = max(obs$date) |> lubridate::with_tz("America/Edmonton"),
