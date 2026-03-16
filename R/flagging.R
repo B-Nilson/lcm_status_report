@@ -68,7 +68,7 @@ flag_bad_temperature <- function(obs) {
     dplyr::rename(
       temperature_flag = .flag_temperature,
       temperature_flag_name = .flag_name_temperature
-    ) |> 
+    ) |>
     dplyr::mutate(
       temperature_flag_name = dplyr::case_when(
         startsWith(temperature_flag_name, "out of range") ~ "Out of range", # don't care about other flags if oor
@@ -89,7 +89,7 @@ flag_bad_humidity <- function(obs) {
       allowed_repeats = 6 * 6 # 6 hours of 10 min obs
     ) |>
     dplyr::select(-.flags_rh) |>
-    dplyr::rename(rh_flag = .flag_rh, rh_flag_name = .flag_name_rh) |> 
+    dplyr::rename(rh_flag = .flag_rh, rh_flag_name = .flag_name_rh) |>
     dplyr::mutate(
       rh_flag_name = dplyr::case_when(
         startsWith(rh_flag_name, "out of range") ~ "Out of range", # don't care about other flags if oor
