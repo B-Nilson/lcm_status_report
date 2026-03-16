@@ -57,6 +57,7 @@ make_aqsu_status_map <- function(
     # Fill in from start of data record for a specific site to last date of data from any site
     complete_active_site_records(
       time_step = averaging_period,
+      latest_date = latest_date,
       duration_days = duration_days
     ) |>
     # Flag temperature/rh data and breakdown pm25 flag

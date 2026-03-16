@@ -174,10 +174,10 @@ make_status_map_summary <- function(obs, value_cols, flag_threshold = 0.15) {
 complete_active_site_records <- function(
   df,
   time_step = "1 hours",
+  latest_date = lubridate::now("UTC"),
   duration_days = 14
 ) {
-  earliest_date <- lubridate::with_tz(Sys.time(), "UTC") -
-    lubridate::days(duration_days)
+  earliest_date <- latest_date - lubridate::days(duration_days)
   completed <- df |>
     dplyr::group_by(
       site_id,
