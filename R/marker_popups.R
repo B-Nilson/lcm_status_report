@@ -1,6 +1,6 @@
 aqsu_status_popup <- function(
   plot_data,
-  earliest_date,
+  date_range = NULL,
   is_missing = FALSE,
   report_path = "./",
   img_dir = "plots",
@@ -9,6 +9,9 @@ aqsu_status_popup <- function(
   units = "px",
   save_figures = TRUE
 ) {
+  if (is.null(date_range)) {
+    date_range <- range(plot_data$date)
+  }
   # Save plots
   img_names <- paste0(
     "purpleair_",
@@ -26,10 +29,11 @@ aqsu_status_popup <- function(
             pm25_a = ifelse(pm25_flag | pm25_a_flag, NA, pm25_a),
             pm25_b = ifelse(pm25_flag | pm25_b_flag, NA, pm25_b),
             temperature = ifelse(temperature_flag > 0, NA, temperature),
-            rh = ifelse(rh_flag > 0, NA, rh)
+            rh = ifelse(rh_flag > 0, NA, rh),
+            dplyr::across(dplyr::ends_with("_flag_name"), \(x) NA) # remove flag names as well
           )
       ) |>
-      lapply(make_site_flag_plot, earliest_date = earliest_date) |>
+      lapply(make_site_flag_plot, date_range = date_range) |>
       handyr::for_each(
         .enumerate = TRUE,
         .show_progress = FALSE,

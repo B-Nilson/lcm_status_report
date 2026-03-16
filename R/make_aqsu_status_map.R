@@ -98,7 +98,7 @@ make_aqsu_status_map <- function(
           \(pd, i) {
             pd |>
               aqsu_status_popup(
-                earliest_date = earliest_date,
+                date_range = c(earliest_date, latest_date),
                 report_path = report_dir,
                 img_dir = img_dir,
                 width = popup_width_px,

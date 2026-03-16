@@ -1,6 +1,5 @@
 Imports:
     aqmapr,
-	cowplot,
 	data.table,
 	dplyr,
 	extrafont,
@@ -13,6 +12,7 @@ Imports:
 	leaflet.extras,
 	lubridate,
 	mapview,
+	patchwork,
     pbapply,
     quacker,
 	renv,

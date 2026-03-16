@@ -1,57 +1,146 @@
-make_site_flag_plot <- function(site_data, earliest_date) {
-  all_pm_missing <- all(is.na(site_data$pm25))
-  all_temp_missing <- all(is.na(site_data$temperature))
-  all_rh_missing <- all(is.na(site_data$rh))
-  all_missing <- all_pm_missing & all_temp_missing & all_rh_missing
-  if (all_missing) {
-    return(NULL)
+make_site_flag_plot <- function(
+  site_data,
+  date_range = NULL,
+  types = c("pm25", "temperature", "rh")
+) {
+  if (is.null(date_range)) {
+    date_range <- range(site_data$date)
   }
-  plots <- list(
-    site_data |> make_pm25_flag_plot(earliest_date = earliest_date),
-    site_data |> make_temperature_flag_plot(earliest_date = earliest_date),
-    site_data |> make_rh_flag_plot(earliest_date = earliest_date)
-  )
-  if (length(plots)) {
-    cowplot::plot_grid(plotlist = plots, ncol = 1)
-  } else {
-    return(NULL)
-  }
+  types |>
+    lapply(\(type) {
+      gg <- site_data |> make_flag_plot(type = type, date_range = date_range)
+      if (type != dplyr::first(types)) {
+        gg <- gg + ggplot2::labs(title = NULL)
+      }
+      if (type != dplyr::last(types)) {
+        gg <- gg + ggplot2::labs(caption = NULL)
+      }
+      return(gg)
+    }) |>
+    patchwork::wrap_plots(plotlist = _, ncol = 1)
 }
 
-make_pm25_flag_plot <- function(site_data, earliest_date) {
-  if (nrow(site_data) < 2) {
-    return(NULL)
-  }
-  s_id <- site_data$site_id[1]
-  plot_data <- site_data |>
-    dplyr::select(-pm25) |>
-    tidyr::pivot_longer(
-      c("pm25_a", "pm25_b"),
-      names_to = "src",
-      values_to = "pm25"
-    ) |>
-    dplyr::mutate(
-      flag = 2 *
-        ifelse(src == "pm25_a", pm25_a_flag, pm25_b_flag) +
-        4 * pm25_flag,
-      flag = flag |>
-        factor(
-          c(0, 2, 4, 6),
-          c(
-            "Good",
-            "Flagged",
-            "Disagreeing",
-            "Disagreeing and Flagged"
-          )
-        ),
-      src = factor(
-        src,
+make_flag_plot <- function(site_data, date_range, type = "pm25") {
+  fills <- c(
+    # PM2.5 ----------------------
+    "A bad" = "#F8766D",
+    "B bad" = "#619CFF",
+    "A bad, B bad" = "#AD89B6",
+    "AB disagree" = "grey",
+    # Temperature & RH -----------
+    "Out of range" = "#F8766D",
+    "Spiking" = "#619CFF",
+    "Repeating" = "#93AA00"
+  )
+  colours <- c(
+    # PM2.5 ----------------------
+    "A sensor" = "#F8766D",
+    "B sensor" = "#619CFF",
+    # Temperature & RH -----------
+    " " = "black" # display no label (rely on legend title)
+  )
+
+  if (type == "pm25") {
+    plot_data <- site_data |>
+      dplyr::select(-pm25) |>
+      tidyr::pivot_longer(
         c("pm25_a", "pm25_b"),
-        c("A Sensor", "B Sensor")
+        names_to = "src",
+        values_to = "pm25",
+        names_transform = \(x) {
+          sub("pm25_", "", x) |> toupper() |> paste("sensor")
+        }
       )
+  } else {
+    plot_data <- site_data |>
+      dplyr::mutate(src = " ") # display no label (rely on legend title)
+  }
+  plot_data <- plot_data |>
+    dplyr::rename_with(
+      \(x) ifelse(x == type, "value", "flag"),
+      .cols = dplyr::ends_with("flag_name") & dplyr::starts_with(type) | !!type
     )
-  flagged_periods <- plot_data |>
-    dplyr::filter(flag != "Good", !is.na(pm25)) |>
+
+  base_plot <- plot_data |> make_base_plot(date_range = date_range, type = type)
+  if (nrow(plot_data) < 2) {
+    return(base_plot)
+  }
+
+  needs_flags <- any(complete.cases(plot_data$flag, plot_data$value))
+  if (needs_flags) {
+    flagged_periods <- plot_data |> get_flagged_periods()
+    base_plot <- base_plot +
+      ggplot2::geom_rect(
+        data = flagged_periods,
+        ggplot2::aes(
+          fill = flag,
+          xmin = start,
+          xmax = end,
+          ymin = -Inf,
+          ymax = Inf
+        ),
+        inherit.aes = FALSE,
+        alpha = 0.45
+      )
+  }
+
+  base_plot +
+    ggplot2::geom_line(linewidth = 0.5, na.rm = TRUE) +
+    ggplot2::scale_colour_manual(values = colours) +
+    ggplot2::scale_fill_manual(values = fills, breaks = names(fills))
+}
+
+make_base_plot <- function(plot_data, date_range, type = "pm25") {
+  plot_title <- "%s (PurpleAir ID: %s)" |>
+    sprintf(plot_data$name[1], plot_data$site_id[1])
+
+  legend_titles <- list(
+    pm25 = bquote("PM"[2.5] ~ "(" * mu * "g m"^-3 * ")"),
+    temperature = bquote("Temperature (" * degree * "C)"),
+    rh = "Humidity (%)"
+  )
+
+  plot_data |>
+    ggplot2::ggplot(ggplot2::aes(x = date, y = value, colour = src)) +
+    ggplot2::scale_x_datetime(
+      date_breaks = "1 days",
+      date_labels = "%b %d",
+      expand = ggplot2::expansion(0),
+      limits = date_range
+    ) +
+    ggplot2::scale_y_continuous(
+      expand = ggplot2::expansion(c(0.02, 0.05)),
+      limits = c(ifelse(type == "temperature", NA, 0), NA)
+    ) +
+    ggpubr::theme_pubr(border = TRUE) +
+    ggplot2::labs(
+      x = NULL,
+      y = NULL,
+      fill = NULL,
+      colour = legend_titles[[type]],
+      caption = "10-minute average data from %s to %s (UTC)" |>
+        sprintf(
+          min(plot_data$date),
+          max(plot_data$date)
+        ),
+      title = plot_title
+    ) +
+    ggplot2::guides(
+      fill = ggplot2::guide_legend(order = 2),
+      colour = ggplot2::guide_legend(order = 1)
+    ) +
+    ggplot2::theme(
+      text = ggplot2::element_text(family = "Inter"),
+      legend.text = ggplot2::element_text(size = 12), # increase font size
+      legend.margin = ggplot2::margin(0, 1, 1, 1), # Reduce spacing between legends
+      legend.box.spacing = ggplot2::unit(6, "pt"), # reduce spacing between plot and legend
+      plot.title = ggplot2::element_text(face = "bold", hjust = 0.5)
+    )
+}
+
+get_flagged_periods <- function(flag_plot_data) {
+  flag_plot_data |>
+    dplyr::filter(complete.cases(flag, value)) |>
     dplyr::group_by(src, flag) |>
     dplyr::arrange(date) |>
     dplyr::mutate(
@@ -61,233 +150,5 @@ make_pm25_flag_plot <- function(site_data, earliest_date) {
     ) |>
     dplyr::group_by(src, flag, window) |>
     dplyr::summarise(start = min(date), end = max(date), .groups = "drop") |>
-    dplyr::mutate(
-      dplyr::across(c(flag, src), as.character),
-      flag = ifelse(
-        flag == "Flagged",
-        paste(src |> sub(pattern = " Sensor", replacement = ""), flag),
-        "A/B Disagree"
-      ) |>
-        factor(
-          levels = c("A", "B") |> paste("Flagged") |> c("A/B Disagree")
-        )
-    ) |>
     dplyr::distinct(flag, window, start, end)
-
-  fills <- c(
-    "A Flagged" = "#F8766D",
-    "B Flagged" = "#619CFF",
-    "A/B Disagree" = "grey"
-  )
-  colours <- c(
-    "A Sensor" = "#F8766D",
-    "B Sensor" = "#619CFF"
-  )
-
-  plot_data |>
-    ggplot2::ggplot(ggplot2::aes(x = date, y = pm25, colour = src)) +
-    ggplot2::geom_rect(
-      data = flagged_periods,
-      ggplot2::aes(
-        fill = flag,
-        xmin = start,
-        xmax = end,
-        ymin = -Inf,
-        ymax = Inf
-      ),
-      inherit.aes = FALSE,
-      alpha = 0.45
-    ) +
-    ggplot2::geom_line(linewidth = 0.5, na.rm = TRUE) +
-    ggplot2::scale_x_datetime(
-      date_breaks = "1 days",
-      date_labels = "%b %d",
-      expand = ggplot2::expansion(0),
-      limits = c(earliest_date - lubridate::minutes(60), max(obs$date))
-    ) +
-    ggplot2::scale_y_continuous(
-      expand = ggplot2::expansion(c(0.02, 0.05)),
-      limits = c(0, NA)
-    ) +
-    ggpubr::theme_pubr(border = TRUE) +
-    ggplot2::scale_colour_manual(values = colours) +
-    ggplot2::scale_fill_manual(values = fills) +
-    ggplot2::labs(
-      x = NULL,
-      y = NULL,
-      fill = NULL,
-      colour = bquote("PM"[2.5] ~ "(" * mu * "g m"^-3 * ")"),
-      title = paste0(site_data$name[1], " (ID: ", s_id, ")")
-    ) +
-    ggplot2::guides(
-      fill = ggplot2::guide_legend(order = 2),
-      colour = ggplot2::guide_legend(order = 1)
-    )
-}
-
-make_temperature_flag_plot <- function(site_data, earliest_date) {
-  if (nrow(site_data) < 2) {
-    return(NULL)
-  }
-  s_id <- site_data$site_id[1]
-  plot_data <- site_data |>
-    dplyr::mutate(flagged = temperature_flag > 0) |>
-    dplyr::mutate(
-      flag = temperature_flag |>
-        factor(
-          c(0, 1, 2, 4, 8, 6, 10, 12, 14),
-          c(
-            "Good",
-            "Missing",
-            "Out of Range",
-            "Repeating",
-            "Rapidly Changing",
-            "Out of Range / Repeating",
-            "Out of Range / Rapidly Changing",
-            "Repeating / Rapidly Changing",
-            "Out of Range / Repeating / Rapidly Changing"
-          )
-        )
-    )
-  flagged_obs <- plot_data |>
-    dplyr::filter(flag != "Good", !is.na(temperature))
-
-  site_data |>
-    ggplot2::ggplot(ggplot2::aes(x = date, y = temperature)) +
-    ggplot2::geom_line(
-      linewidth = 0.2,
-      na.rm = TRUE,
-      ggplot2::aes(colour = "Temperature")
-    ) +
-    ggplot2::geom_point(
-      data = flagged_obs,
-      ggplot2::aes(fill = stringr::str_wrap(flag, width = 14)),
-      size = 1.5,
-      stroke = 0.15,
-      shape = 21,
-      colour = "black"
-    ) +
-    ggplot2::scale_x_datetime(
-      date_breaks = "1 days",
-      date_labels = "%b %d",
-      limits = c(earliest_date, max(obs$date)),
-      expand = ggplot2::expansion(0)
-    ) +
-    # scale_y_continuous(labels = function(x) bquote(.(x)~degree*"C" )) +
-    ggplot2::scale_colour_manual(values = c(Temperature = "black")) +
-    ggpubr::theme_pubr() +
-    ggplot2::labs(
-      y = NULL,
-      x = NULL,
-      fill = "Values are: ",
-      colour = bquote("Temperature (" * degree * "C)") #,
-      # title = paste0(site_data$name[1], " (ID: ", s_id, ")")
-    ) +
-    # add_theme_300dpi() +
-    ggplot2::guides(
-      fill = ggplot2::guide_legend(order = 2),
-      colour = ggplot2::guide_legend(order = 1)
-    )
-}
-
-make_rh_flag_plot <- function(site_data, earliest_date) {
-  if (nrow(site_data) < 2) {
-    return(NULL)
-  }
-  s_id <- site_data$site_id[1]
-  plot_data <- site_data |>
-    dplyr::mutate(flagged = rh_flag > 0) |>
-    dplyr::mutate(
-      flag = rh_flag |>
-        factor(
-          c(0, 1, 2, 4, 8, 6, 10, 12, 14),
-          c(
-            "Good",
-            "Missing",
-            "Out of Range",
-            "Repeating",
-            "Rapidly Changing",
-            "Out of Range / Repeating",
-            "Out of Range / Rapidly Changing",
-            "Repeating / Rapidly Changing",
-            "Out of Range / Repeating / Rapidly Changing"
-          )
-        )
-    )
-  flagged_obs <- plot_data |>
-    dplyr::filter(flag != "Good", !is.na(rh))
-
-  site_data |>
-    ggplot2::ggplot(ggplot2::aes(x = date, y = rh)) +
-    ggplot2::geom_line(
-      linewidth = 0.2,
-      na.rm = TRUE,
-      ggplot2::aes(colour = "Humidity")
-    ) +
-    ggplot2::geom_point(
-      data = flagged_obs,
-      ggplot2::aes(fill = stringr::str_wrap(flag, width = 14)),
-      size = 1.5,
-      stroke = 0.15,
-      shape = 21,
-      colour = "black"
-    ) +
-    ggplot2::scale_x_datetime(
-      date_breaks = "1 days",
-      date_labels = "%b %d",
-      limits = c(earliest_date, max(obs$date)),
-      expand = ggplot2::expansion(0)
-    ) +
-    ggplot2::scale_y_continuous(
-      limits = c(0, 100),
-      expand = ggplot2::expansion(add = 1)
-    ) +
-    ggplot2::scale_colour_manual(values = c(Humidity = "black")) +
-    ggpubr::theme_pubr() +
-    ggplot2::labs(
-      y = NULL,
-      x = NULL,
-      fill = "Values are: ",
-      colour = "Humidity (%)" #,
-      # title = paste0(site_data$name[1], " (ID: ", s_id, ")")
-    ) +
-    # add_theme_300dpi() +
-    ggplot2::guides(
-      fill = ggplot2::guide_legend(order = 2),
-      colour = ggplot2::guide_legend(order = 1)
-    )
-}
-
-add_theme_300dpi <- function() {
-  base_size <- 5
-  ggplot2::theme(
-    # Use Inter font for all text
-    text = ggplot2::element_text(family = "Inter"),
-    # Set font sizes based on base_size
-    axis.text = ggplot2::element_text(size = base_size * 0.8),
-    axis.title = ggplot2::element_text(size = base_size),
-    legend.text = ggplot2::element_text(size = base_size * 0.8),
-    legend.title = ggplot2::element_text(size = base_size * 0.8, face = "bold"),
-    plot.title = ggplot2::element_text(
-      size = base_size * 0.8,
-      # Bold and center the title
-      face = "bold",
-      hjust = 0.5
-    ),
-    # Make axis lines/ticks less thick
-    axis.line = ggplot2::element_line(linewidth = 0.1),
-    axis.ticks = ggplot2::element_line(linewidth = 0.1),
-    axis.ticks.length = ggplot2::unit(2, "pt"),
-    # Adjust spacing around plot elements
-    plot.margin = ggplot2::margin(2, 1, 1, 1), # Reduce spacing around plot
-    legend.box.margin = ggplot2::margin(r = 3, 0, 0, 0), # stop long legend items from being cutoff
-    legend.margin = ggplot2::margin(1, 1, 1, 1), # Reduce spacing between legends
-    legend.spacing = ggplot2::unit(1, "pt"), # Reduce spacing between legends
-    legend.box.spacing = ggplot2::unit(0, "pt"), # reduce spacing between plot and legend
-    # legend.box.spacing = ggplot2::unit(0, "pt"),
-    legend.key.size = ggplot2::unit(5, "pt"), #  reduce size of legends
-    # Format legend
-    legend.position = "right",
-    legend.key = ggplot2::element_rect(fill = NA, colour = NA)
-  )
 }
