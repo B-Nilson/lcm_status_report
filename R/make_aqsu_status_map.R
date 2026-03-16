@@ -77,10 +77,11 @@ make_aqsu_status_map <- function(
     "name",
     "date",
     value_cols,
-    paste0(value_cols, "_flag")
+    paste0(value_cols, "_flag"),
+    paste0(value_cols, "_flag_name")
   )
   map_data$plot_data <- obs |>
-    dplyr::select(dplyr::all_of(plot_cols)) |>
+    dplyr::select(dplyr::any_of(plot_cols)) |>
     dplyr::mutate(site_id_copy = site_id) |>
     tidyr::nest(.by = site_id_copy) |>
     dplyr::pull(data)
