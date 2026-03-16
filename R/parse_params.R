@@ -3,7 +3,7 @@ parse_params <- function(params_file = "params.yml") {
   if (params$report_period$latest_date == "now") {
     params$report_period$latest_date <- lubridate::now("UTC")
   } else {
-    params$latest_date <- params$report_period$latest_date |>
+    params$report_period$latest_date <- params$report_period$latest_date |>
       lubridate::ymd_hms(tz = "UTC")
   }
   params$.obs_cache_rds <- params$dirs$output |>
