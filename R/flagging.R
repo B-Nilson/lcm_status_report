@@ -23,10 +23,16 @@ add_purpleair_flags <- function(obs) {
   obs |>
     convert_pm25_qc_to_flags() |>
     dplyr::arrange(date) |>
-    dplyr::group_by(site_id) |>
-    flag_bad_temperature() |>
-    flag_bad_humidity() |>
-    dplyr::ungroup()
+    tidyr::nest(.by = site_id) |>
+    dplyr::mutate(
+      data = data |>
+        lapply(\(df) {
+          df |>
+            flag_bad_temperature() |>
+            flag_bad_humidity()
+        })
+    ) |>
+    tidyr::unnest(data)
 }
 
 convert_pm25_qc_to_flags <- function(obs) {
