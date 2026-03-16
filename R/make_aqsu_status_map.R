@@ -33,11 +33,6 @@ make_aqsu_status_map <- function(
   source("R/marker_popups.R")
   source("R/plotting.R")
 
-  js_css_paths <- file.path(css_dir, "report_stylesheet.css") |>
-    c(file.path(js_dir, c("main.js", "helpers.js")))
-  inter_font_url <- '%s?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap' |>
-    sprintf("https://fonts.googleapis.com/css2") |>
-    setNames("Inter")
   earliest_date <- latest_date - lubridate::days(duration_days)
   desired_cols <- c(meta_cols, value_cols)
   value_cols <- ifelse(names(value_cols) == "", value_cols, names(value_cols))
@@ -70,46 +65,66 @@ make_aqsu_status_map <- function(
     make_status_map_summary(
       value_cols = value_cols_flagged,
       flag_threshold = p_hours_flagged_thresh
-    )
-
-  # Make timeseries data for each monitor
-  plot_cols <- c(
-    "site_id",
-    "name",
-    "date",
-    value_cols,
-    paste0(value_cols, "_flag"),
-    paste0(value_cols, "_flag_name")
-  )
-  map_data$plot_data <- obs |>
-    dplyr::select(dplyr::any_of(plot_cols)) |>
-    dplyr::mutate(site_id_copy = site_id) |>
-    tidyr::nest(.by = site_id_copy) |>
-    dplyr::pull(data)
-
-  # Make popup html, creating and saving figures along the way
-  file.path(report_dir, img_dir) |>
-    dir.create(showWarnings = FALSE, recursive = TRUE)
-  map_data <- map_data |>
-    dplyr::mutate(
-      popup = .data$plot_data |>
-        handyr::for_each(
-          .enumerate = TRUE,
-          \(pd, i) {
-            pd |>
-              aqsu_status_popup(
-                date_range = c(earliest_date, latest_date),
-                report_path = report_dir,
-                img_dir = img_dir,
-                width = popup_width_px,
-                is_missing = map_data$entirely_offline[i],
-                save_figures = save_figures
-              )
-          }
-        )
+    ) |>
+    make_marker_popups(
+      obs = obs,
+      value_cols = value_cols,
+      date_range = c(earliest_date, latest_date),
+      report_dir = report_dir,
+      img_dir = img_dir,
+      save_figures = save_figures
     )
 
   # Make Map of AQSU Flags
+  map_timestamp <- max(obs$date) |>
+    lubridate::with_tz(ifelse(timestamp_tz == "browser", "UTC", timestamp_tz))
+  map <- map_data |>
+    make_map(
+      map_timestamp = map_timestamp,
+      timestamp_tz = timestamp_tz,
+      page_title = page_title,
+      base_map_provider = base_map_provider,
+      duration_days = duration_days,
+      popup_width_px = popup_width_px,
+      css_dir = css_dir,
+      js_dir = js_dir
+    )
+
+  # Save map to html if desired
+  if (!is.null(map_path)) {
+    map |>
+      aqmapr::save_map(
+        save_to = map_path,
+        library_dir = map_lib_dir
+      )
+  }
+
+  # Save data if desired
+  if (!is.null(data_path)) {
+    map_data |>
+      dplyr::select(-plot_data, -popup, -dplyr::starts_with("hover_")) |>
+      data.table::fwrite(data_path)
+  }
+
+  invisible(map)
+}
+
+make_map <- function(
+  map_data,
+  map_timestamp,
+  timestamp_tz,
+  duration_days,
+  popup_width_px,
+  page_title,
+  base_map_provider,
+  css_dir = "css",
+  js_dir = "js"
+) {
+  js_css_paths <- file.path(css_dir, "report_stylesheet.css") |>
+    c(file.path(js_dir, c("main.js", "helpers.js")))
+  inter_font_url <- '%s?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap' |>
+    sprintf("https://fonts.googleapis.com/css2") |>
+    setNames("Inter")
   layer_groups <- c(
     "PM2.5 Sensors",
     "Temperature Sensor",
@@ -118,10 +133,11 @@ make_aqsu_status_map <- function(
     "Current Temperature",
     "Current RH"
   )
+
   if (is.null(names(base_map_provider))) {
     names(base_map_provider) <- base_map_provider # TODO: do in aqmapr
   }
-  map <- aqmapr::make_leaflet_map(
+  aqmapr::make_leaflet_map(
     base_maps = base_map_provider,
     layer_control_titles = NULL,
     add_basemaps_to_layer_control = FALSE,
@@ -133,12 +149,7 @@ make_aqsu_status_map <- function(
     leaflet.extras::addHash() |> # track map center/zoom
     aqmapr::include_font(font_urls = inter_font_url, force = TRUE) |>
     aqmapr::add_map_timestamp(
-      timestamp = max(obs$date) |>
-        lubridate::with_tz(ifelse(
-          timestamp_tz == "browser",
-          yes = "UTC",
-          no = timestamp_tz
-        )),
+      timestamp = map_timestamp,
       use_browser_timezone = timestamp_tz == "browser"
     ) |>
     # Add layers control to topright
@@ -160,22 +171,4 @@ make_aqsu_status_map <- function(
     # Include custom JS/CSS
     aqmapr::include_scripts(paths = js_css_paths) |>
     htmlwidgets::onRender("handle_render")
-
-  # Save map to html if desired
-  if (!is.null(map_path)) {
-    map |>
-      aqmapr::save_map(
-        save_to = map_path,
-        library_dir = map_lib_dir
-      )
-  }
-
-  # Save data if desired
-  if (!is.null(data_path)) {
-    map_data |>
-      dplyr::select(-plot_data, -popup, -dplyr::starts_with("hover_")) |>
-      data.table::fwrite(data_path)
-  }
-
-  invisible(map)
 }

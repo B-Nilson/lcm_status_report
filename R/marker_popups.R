@@ -1,3 +1,50 @@
+make_marker_popups <- function(
+  map_data,
+  obs,
+  value_cols,
+  date_range,
+  report_dir,
+  img_dir,
+  save_figures = TRUE
+) {
+  # Make timeseries data for each monitor
+  plot_cols <- c(
+    "site_id",
+    "name",
+    "date",
+    value_cols,
+    paste0(value_cols, "_flag"),
+    paste0(value_cols, "_flag_name")
+  )
+  map_data$plot_data <- obs |>
+    dplyr::select(dplyr::any_of(plot_cols)) |>
+    dplyr::mutate(site_id_copy = site_id) |>
+    tidyr::nest(.by = site_id_copy) |>
+    dplyr::pull(data)
+
+  # Make popup html, creating and saving figures along the way
+  file.path(report_dir, img_dir) |>
+    dir.create(showWarnings = FALSE, recursive = TRUE)
+  map_data |>
+    dplyr::mutate(
+      popup = .data$plot_data |>
+        handyr::for_each(
+          .enumerate = TRUE,
+          \(pd, i) {
+            pd |>
+              aqsu_status_popup(
+                date_range = date_range,
+                report_path = report_dir,
+                img_dir = img_dir,
+                width = popup_width_px,
+                is_missing = map_data$entirely_offline[i],
+                save_figures = save_figures
+              )
+          }
+        )
+    )
+}
+
 aqsu_status_popup <- function(
   plot_data,
   date_range = NULL,
