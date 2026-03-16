@@ -49,11 +49,7 @@ convert_pm25_qc_to_flags <- function(obs) {
 }
 
 flag_bad_temperature <- function(obs) {
-  allowed_steps <- list(
-    '10 mins' = 20,
-    '1 hours' = 30,
-    '3 hours' = 50
-  )
+  allowed_steps <- list('10 mins' = 20)
   obs |>
     quacker::qaqc_timeseries(
       date_col = "date",
@@ -83,8 +79,8 @@ flag_bad_humidity <- function(obs) {
       value_cols = "rh",
       time_step = "10 mins",
       allowed_range = c(0, 100),
-      allowed_steps = list('1 hours' = 60),
-      allowed_repeats = 3
+      allowed_steps = list('10 mins' = 60),
+      allowed_repeats = 3 * 6 # 3 hours of 10 min obs
     ) |>
     dplyr::select(-.flags_rh) |>
     dplyr::rename(rh_flag = .flag_rh, rh_flag_name = .flag_name_rh) |> 
