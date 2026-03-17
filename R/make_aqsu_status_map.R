@@ -76,7 +76,7 @@ make_aqsu_status_map <- function(
     make_marker_popups(
       obs = obs,
       value_cols = value_cols,
-      date_range = c(earliest_date, latest_date),
+      full_date_range = c(earliest_date, latest_date),
       report_dir = report_dir,
       img_dir = img_dir,
       popup_width_px = popup_width_px,

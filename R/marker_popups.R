@@ -2,7 +2,7 @@ make_marker_popups <- function(
   map_data,
   obs,
   value_cols,
-  date_range,
+  full_date_range,
   report_dir,
   img_dir,
   popup_width_px,
@@ -34,7 +34,7 @@ make_marker_popups <- function(
           \(pd, i) {
             pd |>
               aqsu_status_popup(
-                date_range = date_range,
+                date_range = full_date_range,
                 report_path = report_dir,
                 img_dir = img_dir,
                 width = popup_width_px,
