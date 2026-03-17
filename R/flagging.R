@@ -93,7 +93,7 @@ flag_bad_humidity <- function(obs) {
     dplyr::mutate(
       rh_flag_name = dplyr::case_when(
         startsWith(rh_flag_name, "out of range") ~ "Out of range", # don't care about other flags if oor
-        rh_flag_name == "repeating at Range" ~ "Repeating",
+        rh_flag_name == "repeating at range" ~ "Repeating",
         .default = rh_flag_name |> stringr::str_to_sentence()
       )
     )
