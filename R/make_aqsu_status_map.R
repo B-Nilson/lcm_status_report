@@ -84,15 +84,14 @@ make_aqsu_status_map <- function(
     )
 
   # Make Map of AQSU Flags
-  map_timestamp <- max(obs$date) |>
+  map_date_range <- c(earliest_date, max(obs$date)) |>
     lubridate::with_tz(ifelse(timestamp_tz == "browser", "UTC", timestamp_tz))
   map <- map_data |>
     make_map(
-      map_timestamp = map_timestamp,
+      map_date_range = map_date_range,
       timestamp_tz = timestamp_tz,
       page_title = page_title,
       base_map_provider = base_map_provider,
-      duration_days = duration_days,
       popup_width_px = popup_width_px,
       css_dir = css_dir,
       js_dir = js_dir
@@ -119,9 +118,8 @@ make_aqsu_status_map <- function(
 
 make_map <- function(
   map_data,
-  map_timestamp,
+  map_date_range,
   timestamp_tz,
-  duration_days,
   popup_width_px,
   page_title,
   base_map_provider,
@@ -156,20 +154,13 @@ make_map <- function(
   ) |>
     leaflet.extras::addHash() |> # track map center/zoom
     aqmapr::include_font(font_urls = inter_font_url, force = TRUE) |>
-    aqmapr::add_map_timestamp(
-      timestamp = map_timestamp,
-      use_browser_timezone = timestamp_tz == "browser"
-    ) |>
+    add_map_date_range(date_range = map_date_range, tzone = timestamp_tz) |>
     # Add layers control to topright
     leaflet::addLayersControl(
       overlayGroups = layer_groups,
       options = leaflet::layersControlOptions(collapsed = FALSE)
     ) |>
-    add_monitor_markers(
-      map_data = map_data,
-      duration_days = duration_days,
-      popup_width_px = popup_width_px
-    ) |>
+    add_monitor_markers(map_data = map_data, popup_width_px = popup_width_px) |>
     # Add search menu and scale bar
     add_search_menu(
       target_groups = layer_groups[1],
@@ -179,4 +170,30 @@ make_map <- function(
     # Include custom JS/CSS
     aqmapr::include_scripts(paths = js_css_paths) |>
     htmlwidgets::onRender("handle_render")
+}
+
+# TODO: move to aqmapr
+add_map_date_range <- function(map, date_range, tzone = "browser") {
+  date_range_placeholders <- date_range |>
+    lubridate::with_tz(tzone = "UTC") |>
+    format("%Y-%m-%dT%H:%M:%SZ")
+  map |>
+    # includes JS, will be replaced by next control
+    aqmapr::add_map_timestamp(
+      timestamp = date_range[1],
+      use_browser_timezone = timestamp_tz == "browser"
+    ) |>
+    # Add custom timestamp with both dates
+    leaflet::addControl(
+      html = paste0(
+        '<big><strong>From: ',
+        date_range_placeholders[1],
+        '</strong></big><br>',
+        '<big><strong>Up to: ',
+        date_range_placeholders[2],
+        '</strong></big>'
+      ),
+      layerId = "map_timestamp",
+      position = "bottomleft"
+    )
 }

@@ -1,4 +1,4 @@
-add_monitor_markers <- function(map, map_data, duration_days, popup_width_px) {
+add_monitor_markers <- function(map, map_data, popup_width_px) {
   totals <- list(
     PM = map_data$flag_group_pm |>
       levels() |>
@@ -17,7 +17,6 @@ add_monitor_markers <- function(map, map_data, duration_days, popup_width_px) {
       totals = totals,
       flagged = FALSE,
       sensor = "PM",
-      duration_days = duration_days,
       popup_width = popup_width_px
     ) |>
     add_monitor_network_markers(
@@ -25,7 +24,6 @@ add_monitor_markers <- function(map, map_data, duration_days, popup_width_px) {
       totals = totals,
       flagged = TRUE,
       sensor = "PM",
-      duration_days = duration_days,
       popup_width = popup_width_px
     ) |>
     # Add flagged T markers on top of unflagged + legend
@@ -34,7 +32,6 @@ add_monitor_markers <- function(map, map_data, duration_days, popup_width_px) {
       totals = totals,
       flagged = FALSE,
       sensor = "T",
-      duration_days = duration_days,
       popup_width = popup_width_px
     ) |>
     add_monitor_network_markers(
@@ -42,7 +39,6 @@ add_monitor_markers <- function(map, map_data, duration_days, popup_width_px) {
       totals = totals,
       flagged = TRUE,
       sensor = "T",
-      duration_days = duration_days,
       popup_width = popup_width_px
     ) |>
     # Add flagged RH markers on top of unflagged + legend
@@ -51,7 +47,6 @@ add_monitor_markers <- function(map, map_data, duration_days, popup_width_px) {
       totals = totals,
       flagged = FALSE,
       sensor = "RH",
-      duration_days = duration_days,
       popup_width = popup_width_px
     ) |>
     add_monitor_network_markers(
@@ -59,7 +54,6 @@ add_monitor_markers <- function(map, map_data, duration_days, popup_width_px) {
       totals = totals,
       flagged = TRUE,
       sensor = "RH",
-      duration_days = duration_days,
       popup_width = popup_width_px
     ) |>
     # Hide T/RH sensor and Current reading markers to start
@@ -77,7 +71,6 @@ add_monitor_network_markers <- function(
   flagged = FALSE,
   sensor = c("PM", "T", "RH"),
   save_figs = TRUE,
-  duration_days = 14,
   popup_width = 700 # pixels
 ) {
   stopifnot(sensor %in% c("PM", "T", "RH"))
@@ -174,8 +167,7 @@ add_monitor_network_markers <- function(
         flag_columns = flag_columns,
         value_columns = value_columns,
         totals = totals,
-        value_domains = value_domains,
-        duration_days = duration_days
+        value_domains = value_domains
       )
   }
   return(map)
@@ -229,8 +221,7 @@ add_marker_legends <- function(
   flag_columns,
   value_columns,
   totals,
-  value_domains,
-  duration_days
+  value_domains
 ) {
   flag_groups <- dat[[flag_columns[[sensor]]]] |> levels()
   flag_group_labels <- flag_groups |>
@@ -248,8 +239,8 @@ add_marker_legends <- function(
       group = groups[1],
       sizes = legend_sizes[[sensor]],
       opacity = 1,
-      title = "Most Common %s<br>Status for the Past %s Days" |>
-        sprintf(groups[1], duration_days)
+      title = "%s Status" |>
+        sprintf(groups[1])
     ) |>
     leaflet::addLegend(
       pal = palettes$values[[sensor]],
