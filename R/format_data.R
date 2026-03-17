@@ -1,18 +1,7 @@
 make_status_map_summary <- function(obs, value_cols, flag_threshold = 0.15) {
-  flag_levels <- c(
-    "Good" = 0,
-    "Missing" = 1,
-    "Out of Range" = 2,
-    "Repeating" = 4,
-    "Rapidly Changing" = 8,
-    "Out of Range / Repeating" = 6,
-    "Out of Range / Rapidly Changing" = 10,
-    "Repeating / Rapidly Changing" = 12,
-    "Out of Range / Repeating / Rapidly Changing" = 14
-  )
   values <- c("pm25", unname(value_cols)) |>
     c("pm25_flagged", names(value_cols))
-  map_data <- obs |>
+  obs |>
     # Add missing obs (before flagging) flags
     dplyr::mutate(
       pm25_a_missing = is.na(pm25_a),
@@ -70,12 +59,8 @@ make_status_map_summary <- function(obs, value_cols, flag_threshold = 0.15) {
       ),
       # Determine the most common temperature flag (in case multiple issues)
       dplyr::across(
-        c("temperature_flag", "rh_flag"),
-        list(median = \(x) {
-          x[x > 0] |>
-            stats::median(na.rm = TRUE) |>
-            factor(flag_levels, names(flag_levels))
-        })
+        c("temperature_flag_name", "rh_flag_name"),
+        list(median = \(x) most_common(x[x != "Missing"], na.rm = TRUE))
       ),
       # Group flags raised for easier mapping
       flag_group_pm = dplyr::case_when(
@@ -124,13 +109,13 @@ make_status_map_summary <- function(obs, value_cols, flag_threshold = 0.15) {
           "Sensor Currently Offline",
           "Sensor Flagged"
         )),
-      is_flagged_pm = flag_group_pm != "No Detected Issue",
-      is_flagged_temp = flag_group_t != "No Detected Issue",
+      is_flagged_pm25 = flag_group_pm != "No Detected Issue",
+      is_flagged_temperature = flag_group_t != "No Detected Issue",
       is_flagged_rh = flag_group_rh != "No Detected Issue",
       flags = paste(
         ifelse(pm25_a_p_flagged >= flag_threshold, "[A]", NA),
         ifelse(pm25_b_p_flagged >= flag_threshold, "[B]", NA),
-        ifelse(pm25_p_flagged >= flag_threshold, "[D]", NA),
+        ifelse(pm25_p_flagged >= flag_threshold, "[AB]", NA),
         ifelse(temperature_p_flagged >= flag_threshold, "[T]", NA),
         ifelse(rh_p_flagged >= flag_threshold, "[RH]", NA),
         sep = ", "
@@ -140,35 +125,6 @@ make_status_map_summary <- function(obs, value_cols, flag_threshold = 0.15) {
     dplyr::arrange(site_id) |>
     # Convert to spatial
     sf::st_as_sf(coords = c("lng", "lat"), crs = "WGS84")
-
-  # Add hover html for each point
-  map_data |>
-    dplyr::mutate(
-      hover_pm25 = map_data |>
-        aqsu_status_hover(
-          is_bad = .data$is_flagged_pm &
-            !.data$entirely_offline,
-          is_missing = .data$entirely_offline,
-          duration_days = duration_days,
-          flag_threshold = flag_threshold
-        ),
-      hover_temperature = map_data |>
-        aqsu_status_hover(
-          is_bad = .data$is_flagged_temp &
-            !.data$entirely_offline,
-          is_missing = .data$entirely_offline,
-          duration_days = duration_days,
-          flag_threshold = flag_threshold
-        ),
-      hover_rh = map_data |>
-        aqsu_status_hover(
-          is_bad = .data$is_flagged_rh &
-            !.data$entirely_offline,
-          is_missing = .data$entirely_offline,
-          duration_days = duration_days,
-          flag_threshold = flag_threshold
-        )
-    )
 }
 
 complete_active_site_records <- function(

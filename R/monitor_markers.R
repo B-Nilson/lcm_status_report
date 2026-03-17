@@ -13,7 +13,7 @@ add_monitor_markers <- function(map, map_data, duration_days, popup_width_px) {
   map |>
     # Add flagged PM2.5 markers on top of unflagged + legend
     add_monitor_network_markers(
-      dat = dplyr::filter(map_data, !is_flagged_pm | entirely_offline),
+      dat = dplyr::filter(map_data, !is_flagged_pm25 | entirely_offline),
       totals = totals,
       flagged = FALSE,
       sensor = "PM",
@@ -21,7 +21,7 @@ add_monitor_markers <- function(map, map_data, duration_days, popup_width_px) {
       popup_width = popup_width_px
     ) |>
     add_monitor_network_markers(
-      dat = dplyr::filter(map_data, is_flagged_pm & !entirely_offline),
+      dat = dplyr::filter(map_data, is_flagged_pm25 & !entirely_offline),
       totals = totals,
       flagged = TRUE,
       sensor = "PM",
@@ -30,7 +30,7 @@ add_monitor_markers <- function(map, map_data, duration_days, popup_width_px) {
     ) |>
     # Add flagged T markers on top of unflagged + legend
     add_monitor_network_markers(
-      dat = dplyr::filter(map_data, !is_flagged_temp | entirely_offline),
+      dat = dplyr::filter(map_data, !is_flagged_temperature | entirely_offline),
       totals = totals,
       flagged = FALSE,
       sensor = "T",
@@ -38,7 +38,7 @@ add_monitor_markers <- function(map, map_data, duration_days, popup_width_px) {
       popup_width = popup_width_px
     ) |>
     add_monitor_network_markers(
-      dat = dplyr::filter(map_data, is_flagged_temp & !entirely_offline),
+      dat = dplyr::filter(map_data, is_flagged_temperature & !entirely_offline),
       totals = totals,
       flagged = TRUE,
       sensor = "T",

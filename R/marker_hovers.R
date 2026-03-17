@@ -1,158 +1,190 @@
+make_marker_hovers <- function(
+  map_data,
+  sensors = c("pm25", "temperature", "rh"),
+  is_flagged_prefix = "is_flagged_",
+  hover_prefix = "hover_",
+  is_offline_suffix = "_currently_offline",
+  duration_days,
+  flag_threshold
+) {
+  hover_columns <- paste0(is_flagged_prefix, sensors) |>
+    setNames(paste0(hover_prefix, sensors))
+  map_data |>
+    dplyr::mutate(
+      dplyr::across(
+        dplyr::all_of(hover_columns),
+        \(is_flagged) {
+          offline_col <- dplyr::cur_column() |>
+            sub(pattern = is_flagged_prefix, replacement = "") |>
+            paste0(is_offline_suffix)
+          map_data |>
+            handyr::sf_as_df() |>
+            aqsu_status_hover(
+              is_bad = is_flagged,
+              is_offline = map_data[[offline_col]],
+              duration_days = duration_days,
+              flag_threshold = flag_threshold
+            )
+        }
+      )
+    )
+}
+
 aqsu_status_hover <- function(
   dat,
   is_bad = FALSE,
-  is_missing = FALSE,
-  duration_days = 14,
+  is_offline = TRUE,
+  duration_days,
   flag_threshold = 0.15
 ) {
-  if (length(is_missing) == 1) {
-    is_missing <- rep(is_missing, nrow(dat))
-  }
-  if (length(is_bad) == 1) {
-    is_bad <- rep(is_bad, nrow(dat))
-  }
-  with(
-    dat,
-    dplyr::case_when(
-      is_missing ~
-        paste0(
-          "<big><strong>",
-          name,
-          "</strong></big><br>",
-          "ID: ",
-          site_id,
-          "<br>",
-          "<b>No data available past ",
-          duration_days,
-          " days</b><br>",
-          "Last Seen: ",
-          format(last_seen, "%B %d (%Y) at %H:%M (UTC)")
-        ),
-
-      TRUE ~
-        paste0(
-          "<big><strong>",
-          name,
-          "</strong></big><br>",
-          "ID: ",
-          site_id,
-          "<br>",
-          "# of obs past ",
-          duration_days,
-          " days: ",
-          n_obs,
-          "<br>",
-          date_range,
-          "<br>",
-          "<b>Click to view timeseries w/ flags</b><hr>",
-          ifelse(
-            is_bad,
-            "Status: <b>Suspect bad data</b><br>",
-            "Status: <b>Appears to be good</b><br>"
-          ),
-          paste0(
-            "Raised flags for at least ",
-            flag_threshold * 100,
-            "% of hours: <b>",
-            ifelse(flags == "", "None", flags),
-            "</b><br>"
-          ),
-          "All raised flags:<br>",
-          ifelse(
-            pm25_a_p_flagged > 0,
-            paste0(
-              "-[A] A sensor: ",
-              round(pm25_a_p_flagged * 100, 1),
-              "% of obs flagged",
-              "<br>&emsp;Mean: ",
-              pm25_a_mean,
-              " -> ",
-              pm25_a_flagged_mean,
-              "<br>&emsp;Max: ",
-              pm25_a_max,
-              " -> ",
-              pm25_a_flagged_max,
-              "<br>"
-            ),
-            ""
-          ),
-          ifelse(
-            pm25_b_p_flagged > 0,
-            paste0(
-              "-[B] B sensor: ",
-              round(pm25_b_p_flagged * 100, 1),
-              "% of obs flagged",
-              "<br>&emsp;Mean: ",
-              pm25_b_mean,
-              " -> ",
-              pm25_b_flagged_mean,
-              "<br>&emsp;Max: ",
-              pm25_b_max,
-              " -> ",
-              pm25_b_flagged_max,
-              "<br>"
-            ),
-            ""
-          ),
-          ifelse(
-            pm25_p_flagged > 0,
-            paste0(
-              "-[D] A/B Agreement: ",
-              round(pm25_p_flagged * 100, 1),
-              "% of obs flagged",
-              "<br>&emsp;Mean: ",
-              pm25_mean,
-              " -> ",
-              pm25_flagged_mean,
-              "<br>&emsp;Max: ",
-              pm25_max,
-              " -> ",
-              pm25_flagged_max,
-              "<br>"
-            ),
-            ""
-          ),
-          ifelse(
-            temperature_p_flagged > 0,
-            paste0(
-              "-[T] Temp. sensor: ",
-              round(temperature_p_flagged * 100, 1),
-              "% of obs flagged",
-              "<br>&emsp;Values are: ",
-              temperature_flag_median,
-              "<br>&emsp;Mean: ",
-              temperature_mean,
-              " -> ",
-              temperature_flagged_mean,
-              "<br>&emsp;Max: ",
-              temperature_max,
-              " -> ",
-              temperature_flagged_max,
-              "<br>"
-            ),
-            ""
-          ),
-          ifelse(
-            rh_p_flagged > 0,
-            paste0(
-              "-[RH] Humidity sensor: ",
-              round(rh_p_flagged * 100, 1),
-              "% of obs flagged",
-              "<br>&emsp;Values are: ",
-              rh_flag_median,
-              "<br>&emsp;Mean: ",
-              rh_mean,
-              " -> ",
-              rh_flagged_mean,
-              "<br>&emsp;Max: ",
-              rh_max,
-              " -> ",
-              rh_flagged_max,
-              "<br>"
-            ),
-            ""
-          )
-        )
+  dat <- dat |>
+    dplyr::mutate(
+      is_bad = is_bad & !.data$entirely_offline,
+      is_offline = is_offline | .data$entirely_offline | .data$currently_offline
     )
+  templates <- list(
+    missing = c(
+      "<big><strong>%s</strong></big>",
+      "ID: %s",
+      "<b>No data available past %s days</b>",
+      "Last Seen: %s"
+    ),
+    default = c(
+      "<big><strong>%s</strong></big>",
+      "ID: %s",
+      "# of obs past %s days: %s",
+      "%s",
+      "<b>Click to view timeseries w/ flags</b><hr>Status: <b>%s</b>",
+      "Raised flags for at least %s%% of hours: <b>%s</b>",
+      "%s"
+    )
+  ) |>
+    lapply(paste, collapse = "<br>")
+
+  status_message <- dplyr::case_when(
+    dat$currently_offline ~ "Entire monitor currently offline",
+    dat$is_offline ~ "Sensor currently offline",
+    dat$is_bad ~ "Suspect bad data",
+    .default = "Appears to be good"
   )
+  raised_flags <- ifelse(dat$flags == "", "None", dat$flags)
+  summaries <- dat |> make_flagged_messages()
+
+  dplyr::case_when(
+    dat$entirely_offline ~ templates$missing |>
+      sprintf(
+        dat$name,
+        dat$site_id,
+        duration_days,
+        dat$last_seen |> format("%B %d (%Y) at %H:%M (UTC)")
+      ),
+    .default = templates$default |>
+      sprintf(
+        dat$name,
+        dat$site_id,
+        duration_days,
+        dat$n_obs,
+        dat$date_range,
+        status_message,
+        flag_threshold * 100,
+        raised_flags,
+        summaries
+      )
+  )
+}
+
+make_flagged_messages <- function(dat, stats = c(mean = "mean", max = "max")) {
+  sensors <- list(
+    A = list(key = "pm25_a", pretty = "PM<sub>2.5</sub> A"),
+    B = list(key = "pm25_b", pretty = "PM<sub>2.5</sub> B"),
+    AB = list(key = "pm25", pretty = "Combined A/B"),
+    T = list(key = "temperature", pretty = "Temp."),
+    RH = list(key = "rh", pretty = "Humidity")
+  )
+
+  # Extract relevant columns for each list entry
+  summaries <- names(sensors) |>
+    setNames(names(sensors)) |>
+    lapply(\(flag_name) {
+      c(
+        list(
+          values = lapply(stats, \(stat) {
+            columns = "%s_%s%s" |>
+              sprintf(sensors[[flag_name]]$key, c("", "flagged_"), stat) |>
+              setNames(c("before", "after"))
+            dat |> dplyr::select(dplyr::any_of(columns))
+          })
+        ),
+        list(
+          p_flagged = "%s_p_flagged" |> sprintf(sensors[[flag_name]]$key),
+          median_flag = "%s_flag_name_median" |>
+            sprintf(sensors[[flag_name]]$key)
+        ) |>
+          lapply(\(col) {
+            vals <- dat |> dplyr::select(dplyr::any_of(col))
+            if (ncol(vals) == 0) NULL else vals[[col]]
+          })
+      )
+    })
+
+  # Make summary messages united with "<br>" (1 value for each row of dat)
+  messages <- names(sensors) |>
+    setNames(names(sensors)) |>
+    lapply(\(flag_name) {
+      flag_name |>
+        flagged_message(
+          sensor = sensors[[flag_name]]$pretty,
+          values = summaries[[flag_name]]$values,
+          p_flagged = summaries[[flag_name]]$p_flagged,
+          median_flag = summaries[[flag_name]]$median_flag
+        )
+    }) |>
+    unite_w_newline()
+
+  ifelse(nchar(messages) == 0, "", "All raised flags:<br>") |>
+    paste0(messages)
+}
+
+flagged_message <- function(
+  flag_name = c("A", "B", "AB", "T", "RH")[1],
+  sensor = "PM<sub>2.5</sub> A",
+  values,
+  p_flagged,
+  median_flag = NULL
+) {
+  template <- "&emsp; %s: %s -> %s"
+  value_summary <- names(values) |>
+    setNames(names(values)) |>
+    lapply(\(stat) {
+      stat_pretty <- stringr::str_to_title(stat)
+      vals <- values[[stat]] |>
+        lapply(\(x) {
+          x |>
+            round(digits = 1) |>
+            as.character() |>
+            dplyr::replace_values(c(NA_character_, "NaN") ~ "No data.")
+        })
+      template |> sprintf(stat_pretty, vals$before, vals$after)
+    }) |>
+    unite_w_newline()
+
+  if (!is.null(median_flag)) {
+    median_flag_msg <- "&emsp;Values are: %s<br>" |> sprintf(median_flag)
+    median_flag_msg <- ifelse(is.na(median_flag), "", median_flag_msg)
+  } else {
+    median_flag_msg <- ""
+  }
+  message <- paste0(
+    "-[%s] %s sensor: %s of obs flagged<br>",
+    median_flag_msg,
+    "%s"
+  ) |>
+    sprintf(
+      flag_name,
+      sensor,
+      round(p_flagged * 100, 1) |> paste0("%"),
+      value_summary
+    )
+
+  ifelse(p_flagged > 0, message, NA)
 }

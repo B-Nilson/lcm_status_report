@@ -24,6 +24,7 @@ make_aqsu_status_map <- function(
   # extrafont::font_import() # only run once per machine
   # extrafont::loadfonts(device = "all", quiet = TRUE)
 
+  source("R/helpers.R")
   source("R/load_report_data.R")
   source("R/format_data.R")
   source("R/flagging.R")
@@ -64,6 +65,11 @@ make_aqsu_status_map <- function(
   map_data <- obs |>
     make_status_map_summary(
       value_cols = value_cols_flagged,
+      flag_threshold = p_hours_flagged_thresh
+    ) |>
+    make_marker_hovers(
+      sensors = c("pm25", "temperature", "rh"),
+      duration_days = duration_days,
       flag_threshold = p_hours_flagged_thresh
     ) |>
     make_marker_popups(
