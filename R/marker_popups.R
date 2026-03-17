@@ -5,6 +5,7 @@ make_marker_popups <- function(
   date_range,
   report_dir,
   img_dir,
+  popup_width_px,
   save_figures = TRUE
 ) {
   # Make timeseries data for each monitor

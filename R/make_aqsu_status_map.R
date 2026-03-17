@@ -65,6 +65,7 @@ make_aqsu_status_map <- function(
   map_data <- obs |>
     make_status_map_summary(
       value_cols = value_cols_flagged,
+      duration_days = duration_days,
       flag_threshold = p_hours_flagged_thresh
     ) |>
     make_marker_hovers(
@@ -78,6 +79,7 @@ make_aqsu_status_map <- function(
       date_range = c(earliest_date, latest_date),
       report_dir = report_dir,
       img_dir = img_dir,
+      popup_width_px = popup_width_px,
       save_figures = save_figures
     )
 
