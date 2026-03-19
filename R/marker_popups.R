@@ -99,7 +99,7 @@ aqsu_status_popup <- function(
   alt_text <- "Timeseries for past week with QA/QC flags from this monitor's PM2.5 and temperature sensors"
 
   dplyr::case_when(
-    is_missing ~ "<center><b>No data available.</b></center>",
+    is_missing ~ NA_character_,
     TRUE ~
       paste0(
         '<img loading="lazy" src="',
