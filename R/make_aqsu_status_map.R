@@ -1,4 +1,3 @@
-# TODO: priority list for repair/replace with info on install/failure date, what failed, env. conditions ecposed to
 make_aqsu_status_map <- function(
   latest_date = lubridate::now("UTC"),
   duration_days = 7,
@@ -49,7 +48,6 @@ make_aqsu_status_map <- function(
       desired_cols = desired_cols,
       cache_path = obs_cache_rds
     ) |>
-    # TODO: aggregate to averaging period if needed
     # Fill in from start of data record for a specific site to last date of data from any site
     complete_active_site_records(
       time_step = averaging_period,
