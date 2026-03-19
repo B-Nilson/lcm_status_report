@@ -241,7 +241,7 @@ add_marker_legends <- function(
       group = groups[1],
       sizes = legend_sizes[[sensor]],
       opacity = 1,
-      title = "%s Status" |>
+      title = "%s status" |>
         sprintf(groups[1])
     ) |>
     leaflet::addLegend(
