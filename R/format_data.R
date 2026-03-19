@@ -158,14 +158,3 @@ date_range_text <- function(date) {
     max(date) |> format("%F %H:%M (UTC)")
   )
 }
-
-# TODO: move to handyr
-elementwise_mean_no_na <- function(x, y, digits = 1) {
-  n <- as.integer(!is.na(x)) + as.integer(!is.na(y))
-  x <- x |> handyr::swap(NA, with = 0)
-  y <- y |> handyr::swap(NA, with = 0)
-  ((x + y) / n) |>
-    handyr::swap(Inf, with = NA) |>
-    handyr::swap(NaN, with = NA) |>
-    round(digits = digits)
-}
