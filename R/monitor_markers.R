@@ -114,17 +114,19 @@ add_monitor_network_markers <- function(
   groups <- c(layer_names$flag[[sensor]], layer_names$values[[sensor]])
   dat <- dat |>
     dplyr::mutate(
-      flag_fills = palettes$flag[[sensor]](get(flag_columns[[sensor]])),
+      flag_groups = get(flag_columns[[sensor]]),
+      flag_fills = palettes$flag[[sensor]](flag_groups),
       flag_radius = dplyr::case_when(
         entirely_offline ~ 5,
         flagged ~ 7,
         .default = 3
       ),
-      value_fills = get(value_columns[[sensor]]) |>
+      values = get(value_columns[[sensor]]),
+      value_fills = values |>
         handyr::clamp(range = value_domains[[sensor]]) |>
         palettes$values[[sensor]](),
       value_radius = dplyr::case_when(
-        is.na(get(value_columns[[sensor]])) ~ 3,
+        is.na(values) ~ 3,
         .default = 5
       ),
       label = lapply(get(hover_columns[[sensor]]), htmltools::HTML)
@@ -133,7 +135,7 @@ add_monitor_network_markers <- function(
   popup_options <- leaflet::popupOptions(minWidth = popup_width)
   map <- map |>
     leaflet::addCircleMarkers(
-      data = dat,
+      data = dat |> dplyr::arrange(flag_groups),
       group = groups[1],
       radius = ~flag_radius,
       weight = 1,
@@ -145,7 +147,7 @@ add_monitor_network_markers <- function(
       popupOptions = popup_options
     ) |>
     leaflet::addCircleMarkers(
-      data = dat,
+      data = dat |> dplyr::arrange(abs(values)),
       group = groups[2],
       radius = ~value_radius,
       weight = 1,
