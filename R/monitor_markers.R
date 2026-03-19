@@ -242,7 +242,8 @@ add_marker_legends <- function(
       sizes = legend_sizes[[sensor]],
       opacity = 1,
       title = "%s Status" |>
-        sprintf(groups[1])
+        sprintf(groups[1]) |> 
+        sub(pattern = "PM2.5", replacement = "PM<sub>2.5</sub>", fixed = TRUE)
     ) |>
     leaflet::addLegend(
       pal = palettes$values[[sensor]],
@@ -254,7 +255,8 @@ add_marker_legends <- function(
       group = groups[2],
       opacity = 1,
       title = groups[2] |>
-        sub(pattern = "Temperature", replacement = "Temp.", fixed = TRUE)
+        sub(pattern = "Temperature", replacement = "Temp.", fixed = TRUE) |> 
+        sub(pattern = "PM2.5", replacement = "PM<sub>2.5</sub>", fixed = TRUE)
     )
 }
 
