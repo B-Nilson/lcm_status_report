@@ -157,9 +157,6 @@ make_map <- function(
       links$aqmap
     )
 
-  if (is.null(names(base_map_provider))) {
-    names(base_map_provider) <- base_map_provider # TODO: do in aqmapr
-  }
   aqmapr::make_leaflet_map(
     base_maps = base_map_provider,
     layer_control_titles = NULL,
@@ -172,7 +169,11 @@ make_map <- function(
   ) |>
     leaflet.extras::addHash() |> # track map center/zoom
     aqmapr::include_font(font_urls = inter_font_url, force = TRUE) |>
-    add_map_date_range(date_range = map_date_range, tzone = timestamp_tz) |>
+    aqmapr::add_map_timestamps(
+      timestamps = map_date_range,
+      prefixes = c("From: ", "Up to: "),
+      use_browser_timezone = timestamp_tz == "browser"
+    ) |>
     # Add layers control to topright
     leaflet::addLayersControl(
       overlayGroups = layer_groups,
@@ -188,30 +189,4 @@ make_map <- function(
     # Include custom JS/CSS
     aqmapr::include_scripts(paths = js_css_paths) |>
     htmlwidgets::onRender("handle_render")
-}
-
-# TODO: move to aqmapr
-add_map_date_range <- function(map, date_range, tzone = "browser") {
-  date_range_placeholders <- date_range |>
-    lubridate::with_tz(tzone = "UTC") |>
-    format("%Y-%m-%dT%H:%M:%SZ")
-  map |>
-    # includes JS, will be replaced by next control
-    aqmapr::add_map_timestamp(
-      timestamp = date_range[1],
-      use_browser_timezone = tzone == "browser"
-    ) |>
-    # Add custom timestamp with both dates
-    leaflet::addControl(
-      html = paste0(
-        '<big><strong>From: ',
-        date_range_placeholders[1],
-        '</strong></big><br>',
-        '<big><strong>Up to: ',
-        date_range_placeholders[2],
-        '</strong></big>'
-      ),
-      layerId = "map_timestamp",
-      position = "bottomleft"
-    )
 }
