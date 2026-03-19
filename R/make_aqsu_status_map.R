@@ -181,7 +181,7 @@ add_map_date_range <- function(map, date_range, tzone = "browser") {
     # includes JS, will be replaced by next control
     aqmapr::add_map_timestamp(
       timestamp = date_range[1],
-      use_browser_timezone = timestamp_tz == "browser"
+      use_browser_timezone = tzone == "browser"
     ) |>
     # Add custom timestamp with both dates
     leaflet::addControl(
