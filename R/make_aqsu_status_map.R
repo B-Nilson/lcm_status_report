@@ -94,7 +94,8 @@ make_aqsu_status_map <- function(
       base_map_provider = base_map_provider,
       popup_width_px = popup_width_px,
       css_dir = css_dir,
-      js_dir = js_dir
+      js_dir = js_dir,
+      version = "1.5.0"
     )
 
   # Save map to html if desired
@@ -124,7 +125,8 @@ make_map <- function(
   page_title,
   base_map_provider,
   css_dir = "css",
-  js_dir = "js"
+  js_dir = "js",
+  version = "1.0.0"
 ) {
   js_css_paths <- file.path(css_dir, "report_stylesheet.css") |>
     c(file.path(js_dir, c("main.js", "helpers.js")))
@@ -140,6 +142,21 @@ make_map <- function(
     "Current RH"
   )
 
+  links <- list(
+    author = '<a href="mailto:brayden.nilson@ec.gc.ca" title="brayden.nilson@ec.gc.ca">B. Nilson</a>',
+    source = '<a href="https://github.com/B-Nilson/lcm_status_report" target="_blank" rel="noopener noreferrer">source</a>',
+    purpleair = '<a href="https://www.purpleair.com" target="_blank" rel="noopener noreferrer">PurpleAir</a>',
+    aqmap = '<a href="https://aqmap.ca" target="_blank" rel="noopener noreferrer">AQmap</a>'
+  )
+  attribution <- "AQSU status map v%s (%s): created by %s, data from %s via %s" |>
+    sprintf(
+      version,
+      links$source,
+      links$author,
+      links$purpleair,
+      links$aqmap
+    )
+
   if (is.null(names(base_map_provider))) {
     names(base_map_provider) <- base_map_provider # TODO: do in aqmapr
   }
@@ -150,7 +167,8 @@ make_map <- function(
     page_title = page_title,
     track_map_state = FALSE,
     center_on_opened_popup = TRUE,
-    include_scalebar = FALSE
+    include_scalebar = FALSE,
+    attribution = attribution
   ) |>
     leaflet.extras::addHash() |> # track map center/zoom
     aqmapr::include_font(font_urls = inter_font_url, force = TRUE) |>
