@@ -134,11 +134,11 @@ make_map <- function(
     sprintf("https://fonts.googleapis.com/css2") |>
     setNames("Inter")
   layer_groups <- c(
-    "PM2.5 Sensors",
-    "Temperature Sensor",
-    "Humidity Sensor",
-    "Current PM2.5",
-    "Current Temperature",
+    "PM<sub>2.5</sub> sensors",
+    "Temperature sensor",
+    "Humidity sensor",
+    "Current PM<sub>2.5</sub>",
+    "Current temperature",
     "Current RH"
   )
 

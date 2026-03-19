@@ -1,6 +1,6 @@
 add_search_menu <- function(
   map,
-  target_groups = "PM2.5 Sensors",
+  target_groups = "PM<sub>2.5</sub> Sensors",
   search_property = "label"
 ) {
   search_options <- leaflet.extras::searchFeaturesOptions(

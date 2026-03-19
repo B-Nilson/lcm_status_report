@@ -57,10 +57,10 @@ add_monitor_markers <- function(map, map_data, popup_width_px) {
       popup_width = popup_width_px
     ) |>
     # Hide T/RH sensor and Current reading markers to start
-    leaflet::hideGroup("Temperature Sensor") |>
-    leaflet::hideGroup("Humidity Sensor") |>
-    leaflet::hideGroup("Current PM2.5") |>
-    leaflet::hideGroup("Current Temperature") |>
+    leaflet::hideGroup("Temperature sensor") |>
+    leaflet::hideGroup("Humidity sensor") |>
+    leaflet::hideGroup("Current PM<sub>2.5</sub>") |>
+    leaflet::hideGroup("Current temperature") |>
     leaflet::hideGroup("Current RH")
 }
 
@@ -81,13 +81,13 @@ add_monitor_network_markers <- function(
   # Define layer / column names
   layer_names <- list(
     flag = list(
-      PM = "PM2.5 Sensors",
-      T = "Temperature Sensor",
-      RH = "Humidity Sensor"
+      PM = "PM<sub>2.5</sub> sensors",
+      T = "Temperature sensor",
+      RH = "Humidity sensor"
     ),
     values = list(
-      PM = "Current PM2.5",
-      T = "Current Temperature",
+      PM = "Current PM<sub>2.5</sub>",
+      T = "Current temperature",
       RH = "Current RH"
     )
   )
@@ -242,8 +242,7 @@ add_marker_legends <- function(
       sizes = legend_sizes[[sensor]],
       opacity = 1,
       title = "%s Status" |>
-        sprintf(groups[1]) |> 
-        sub(pattern = "PM2.5", replacement = "PM<sub>2.5</sub>", fixed = TRUE)
+        sprintf(groups[1])
     ) |>
     leaflet::addLegend(
       pal = palettes$values[[sensor]],
@@ -255,8 +254,7 @@ add_marker_legends <- function(
       group = groups[2],
       opacity = 1,
       title = groups[2] |>
-        sub(pattern = "Temperature", replacement = "Temp.", fixed = TRUE) |> 
-        sub(pattern = "PM2.5", replacement = "PM<sub>2.5</sub>", fixed = TRUE)
+        sub(pattern = "Temperature", replacement = "Temp.", fixed = TRUE)
     )
 }
 
