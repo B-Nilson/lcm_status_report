@@ -33,3 +33,7 @@ body {
   display: inline-block;
   margin-top: 4px;
 }
+
+.leaflet-popup-content-wrapper {
+  height: 569px;
+}
