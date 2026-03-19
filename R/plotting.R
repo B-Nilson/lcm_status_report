@@ -25,7 +25,7 @@ make_flag_plot <- function(site_data, date_range, type = "pm25") {
     # PM2.5 ----------------------
     "A bad" = "#F8766D",
     "B bad" = "#619CFF",
-    "A bad, B bad" = "#AD89B6",
+    "A+B bad" = "#AD89B6",
     "AB disagree" = "grey",
     # Temperature & RH -----------
     "Out of range" = "#F8766D",
@@ -34,8 +34,8 @@ make_flag_plot <- function(site_data, date_range, type = "pm25") {
   )
   colours <- c(
     # PM2.5 ----------------------
-    "A sensor" = "#F8766D",
-    "B sensor" = "#619CFF",
+    "A" = "#F8766D",
+    "B" = "#619CFF",
     # Temperature & RH -----------
     " " = "black" # display no label (rely on legend title)
   )
@@ -48,7 +48,7 @@ make_flag_plot <- function(site_data, date_range, type = "pm25") {
         names_to = "src",
         values_to = "pm25",
         names_transform = \(x) {
-          sub("pm25_", "", x) |> toupper() |> paste("sensor")
+          sub("pm25_", "", x) |> toupper()
         }
       )
   } else {
@@ -59,6 +59,11 @@ make_flag_plot <- function(site_data, date_range, type = "pm25") {
     dplyr::rename_with(
       \(x) ifelse(x == type, "value", "flag"),
       .cols = dplyr::ends_with("flag_name") & dplyr::starts_with(type) | !!type
+    ) |>
+    dplyr::mutate(
+      flag = flag |>
+        as.character() |>
+        dplyr::replace_values("A bad, B bad" ~ "A+B bad")
     )
 
   base_plot <- plot_data |> make_base_plot(date_range = date_range, type = type)
