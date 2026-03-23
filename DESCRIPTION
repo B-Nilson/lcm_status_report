@@ -1,6 +1,7 @@
 Imports:
     aqmapr,
 	data.table,
+	dbplyr,
 	dplyr,
 	extrafont,
 	ggplot2,
