@@ -41,7 +41,6 @@ make_aqsu_status_map <- function(
   value_cols_flagged <- value_cols |>
     stats::setNames(paste0(value_cols, "_flagged"))
 
-  # Load Past 2 Weeks of AQSU Data and flag
   logs$load_data <- handyr::log_step("Load and Format Data")
   dirname(obs_cache_rds) |> dir.create(showWarnings = FALSE, recursive = TRUE)
   obs <- latest_date |>
@@ -49,7 +48,9 @@ make_aqsu_status_map <- function(
       duration_days = duration_days,
       desired_cols = desired_cols,
       cache_path = obs_cache_rds
-    ) |>
+    )
+  
+  obs <- obs |>
     # Fill in from start of data record for a specific site to last date of data from any site
     complete_active_site_records(
       time_step = averaging_period,
