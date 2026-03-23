@@ -118,7 +118,7 @@ make_aqsu_status_map <- function(
 
   logs$complete <- handyr::log_step("Complete")
   logs |>
-    handyr::summarise_logs(log_path = file.path(report_dir, "last_run.log"))
+    handyr::summarise_logs(save_to = file.path(report_dir, "last_run.log"))
   invisible(map)
 }
 
