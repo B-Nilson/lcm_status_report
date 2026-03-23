@@ -75,8 +75,8 @@ make_status_map_summary <- function(
         pm25_a_currently_offline |
           pm25_b_currently_offline ~ "Sensor(s) Currently Offline",
         pm25_a_p_flagged > flag_threshold |
-          pm25_b_p_flagged > flag_threshold ~ "A or B Sensor Flagged",
-        pm25_p_flagged > flag_threshold ~ "A and B Sensors Disagree",
+          pm25_b_p_flagged > flag_threshold |
+          pm25_p_flagged > flag_threshold ~ "Sensor(s) Flagged or Disagree",
         TRUE ~ "No Detected Issue"
       ) |>
         factor(c(
@@ -84,8 +84,7 @@ make_status_map_summary <- function(
           "No Detected Issue",
           "Monitor Currently Offline",
           "Sensor(s) Currently Offline",
-          "A or B Sensor Flagged",
-          "A and B Sensors Disagree"
+          "Sensor(s) Flagged or Disagree"
         )),
       flag_group_t = dplyr::case_when(
         entirely_offline ~ "No Data Available",

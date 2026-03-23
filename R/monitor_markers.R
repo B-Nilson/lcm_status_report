@@ -176,16 +176,16 @@ add_monitor_network_markers <- function(
 }
 
 make_marker_palettes <- function(dat, value_domains, flag_columns) {
-  main_colours <- c(
+  flag_colours <- c(
     wesanderson::wes_palette("Royal1")[1],
     wesanderson::wes_palette("Darjeeling1")[2],
-    wesanderson::wes_palette("FantasticFox1")[c(3, 2, 4, 5)]
+    wesanderson::wes_palette("FantasticFox1")[c(2, 4, 5)]
   )
   palettes <- list(
     flag = list(
-      PM = main_colours,
-      T = main_colours[-3],
-      RH = main_colours[-3]
+      PM = flag_colours,
+      T = flag_colours,
+      RH = flag_colours
     ),
     values = list(
       PM = leaflet::colorNumeric("viridis", domain = value_domains$PM),
