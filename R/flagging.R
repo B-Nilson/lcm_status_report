@@ -22,6 +22,9 @@ apply_purpleair_flags <- function(flagged_obs, value_cols_flagged) {
 }
 
 add_purpleair_flags <- function(obs) {
+  handyr::log_step(
+    "\t- Adding flags to T/RH data and converting db PM25 QC to flags"
+  )
   obs |>
     convert_pm25_qc_to_flags() |>
     dplyr::arrange(date) |>

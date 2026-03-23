@@ -23,9 +23,13 @@ make_marker_popups <- function(
     tidyr::nest(.by = site_id_copy) |>
     dplyr::pull(data)
 
+  imgs_path <- file.path(report_dir, img_dir)
+  imgs_path |> dir.create(showWarnings = FALSE, recursive = TRUE)
+  if (save_figures) {
+    handyr::log_step("\t- Making popups and saving figures to", imgs_path)
+  }
+
   # Make popup html, creating and saving figures along the way
-  file.path(report_dir, img_dir) |>
-    dir.create(showWarnings = FALSE, recursive = TRUE)
   map_data |>
     dplyr::mutate(
       popup = .data$plot_data |>

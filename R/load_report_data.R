@@ -29,6 +29,7 @@ load_report_data <- function(
     )
 
   # Cache copy
+  handyr::log_step("\t- Caching copy of data to", cache_path)
   obs |> saveRDS(file = cache_path)
   return(obs)
 }

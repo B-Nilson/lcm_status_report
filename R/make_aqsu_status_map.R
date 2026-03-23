@@ -19,6 +19,7 @@ make_aqsu_status_map <- function(
   popup_width_px = 600,
   save_figures = TRUE # set to FALSE for faster testing
 ) {
+  logs <- handyr::log_step("Make AQSU Status Map", header = TRUE)
   # Import fonts and functions
   # extrafont::font_import() # only run once per machine
   # extrafont::loadfonts(device = "all", quiet = TRUE)
@@ -41,6 +42,7 @@ make_aqsu_status_map <- function(
     stats::setNames(paste0(value_cols, "_flagged"))
 
   # Load Past 2 Weeks of AQSU Data and flag
+  logs$load_data <- handyr::log_step("Load and Format Data")
   dirname(obs_cache_rds) |> dir.create(showWarnings = FALSE, recursive = TRUE)
   obs <- latest_date |>
     load_report_data(
@@ -60,6 +62,7 @@ make_aqsu_status_map <- function(
     dplyr::arrange(site_id, date)
 
   # Summarise flagging for each monitor
+  logs$summarise <- handyr::log_step("Summarise Data and Make Plots")
   map_data <- obs |>
     make_status_map_summary(
       value_cols = value_cols_flagged,
@@ -82,6 +85,7 @@ make_aqsu_status_map <- function(
     )
 
   # Make Map of AQSU Flags
+  logs$summarise <- handyr::log_step("Create and Save Map")
   map_date_range <- c(earliest_date, max(obs$date)) |>
     lubridate::with_tz(ifelse(timestamp_tz == "browser", "UTC", timestamp_tz))
   map <- map_data |>
@@ -112,6 +116,9 @@ make_aqsu_status_map <- function(
       data.table::fwrite(data_path)
   }
 
+  logs$complete <- handyr::log_step("Complete")
+  logs |>
+    handyr::summarise_logs(log_path = file.path(report_dir, "last_run.log"))
   invisible(map)
 }
 
