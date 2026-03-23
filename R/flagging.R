@@ -12,10 +12,10 @@ apply_purpleair_flags <- function(flagged_obs, value_cols_flagged) {
         }
       ),
       # Combine A/B mean assuming nothing is flagged
-      pm25 = pm25_a |> 
+      pm25 = pm25_a |>
         handyr::elementwise_mean(pm25_b, digits = 1, na.rm = TRUE),
       # Combine A/B mean after censoring flagged data
-      pm25_flagged = pm25_a_flagged |> 
+      pm25_flagged = pm25_a_flagged |>
         handyr::elementwise_mean(pm25_b_flagged, digits = 1, na.rm = TRUE),
       pm25_flagged = ifelse(pm25_flag, NA, pm25_flagged)
     )

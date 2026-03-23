@@ -1,4 +1,9 @@
-make_status_map_summary <- function(obs, value_cols, duration_days, flag_threshold = 0.15) {
+make_status_map_summary <- function(
+  obs,
+  value_cols,
+  duration_days,
+  flag_threshold = 0.15
+) {
   handyr::log_step("\t- Making point summaries for map")
   values <- c("pm25", unname(value_cols)) |>
     c("pm25_flagged", names(value_cols))
