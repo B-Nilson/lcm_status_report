@@ -228,18 +228,14 @@ add_marker_legends <- function(
   flag_groups <- dat[[flag_columns[[sensor]]]] |> levels()
   flag_group_labels <- flag_groups |>
     paste0(" (n= ", totals[[sensor]], ")")
-  legend_sizes <- list(
-    PM = c(4, 3, 5, 5, 5, 5) * 2,
-    T = c(4, 3, 5, 5, 5) * 2,
-    RH = c(4, 3, 5, 5, 5) * 2
-  )
+  legend_sizes <- c(4, 3, 5, 5, 5) * 2
   value_units <- list(PM = " µg m⁻³", T = " °C", RH = "%")
   map <- map |>
     add_legend_custom(
       colours = palettes$flag[[sensor]](flag_groups),
       labels = flag_group_labels,
       group = groups[1],
-      sizes = legend_sizes[[sensor]],
+      sizes = legend_sizes,
       opacity = 1,
       title = "%s status" |>
         sprintf(groups[1])
