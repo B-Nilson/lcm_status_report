@@ -9,3 +9,4 @@ deployments/plots/**
 deployments/libs/**
 deployments/index.html
 deployments/*.csv
+deployments/last_run.log
